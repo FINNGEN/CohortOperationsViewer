@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rdata
+.httr-oauth
+.DS_Store
+inst/doc
+
+
+errorReportSql.txt
+*.log
+GITHUBPAT.txt
+.quarto
