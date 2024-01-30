@@ -8,11 +8,10 @@ renv::install("usethis")
 renv::install("devtools")
 renv::install("golem")
 
-
 ## Fill the DESCRIPTION ----
 usethis::use_description(
   fields = list(
-    Title = "CohortOperations2",
+    Title = "CohortOperationsViewer",
     Description = "Shiny app to operate cohorts in OMOP format and run analysis",
     `Authors@R` = 'person("Javier", "Gracia-Tabuenca", email = "javier.graciatabuenca@tuni.fi",
                           role = c("aut", "cre"),
