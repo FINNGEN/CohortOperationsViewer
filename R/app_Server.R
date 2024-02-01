@@ -12,61 +12,164 @@ app_server <- function(input, output, session) {
 
 
   r <- shiny::reactiveValues(
-    analysis = NULL
+    sqliteDbPath = NULL
   )
 
-  # if analysis is null show modal
+
+  # Retrieve parameters from the URL and copy them to r$sqliteDbPath
   shiny::observe({
-    if (is.null(r$analysis)) {
-      shiny::showModal(shiny::modalDialog(
-        title = "No analysis loaded",
-        footer = NULL,
-        easyClose = FALSE,
-        #
-        "Please load an analysis first.",
-        shiny::fileInput("loadedFile", "Choose file to upload", accept = c(".zip"))
-      ))
-    }else{
-      output$cohortsTable <- shiny::renderDataTable({
-        r$analysis$cohortsSummary
-      })
-      output$studySettings_text <- shiny::renderText({
-        yaml::as.yaml(r$analysis$studySettings)
-      })
-      output$results_uiOutput <- shiny::renderUI({
-        # render visualization for timeCodeWAS
-        if (r$analysis$studySettings$studyType == "timeCodeWAS") {
-          studyResults <- r$analysis$results
-          mod_timeCodeWASVisualization_server("timeCodeWASVisualization", studyResults)
-          mod_timeCodeWASVisualization_ui("timeCodeWASVisualization")
-        }
-      })
+    query <- shiny::parseQueryString(session$clientData$url_search)
+    value <- query[['sqliteDbPath']]
+    if (!is.null(value)) {
+      r$sqliteDbPath <- value
     }
   })
 
-  # load analysis
+  # if results is null show modal
+   shiny::observe({
+     # r$results
+
+    if (is.null(r$sqliteDbPath)) {
+
+      shiny::showModal(shiny::modalDialog(
+        title = "No results loaded",
+        footer = NULL,
+        easyClose = FALSE,
+        #
+        "Please load an results first.",
+        shiny::fileInput("loadedFile", "Choose sqlite to upload", accept = c(".sqlite"))
+      ))
+
+    }else{
+      browser()
+         # render visualization for timeCodeWAS
+        if (TRUE) {
+          sqliteDbPath <- r$sqliteDbPath
+
+          connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "sqlite", server = sqliteDbPath)
+
+          shinySettings <- list(
+            connectionDetails = connectionDetails,
+            resultsDatabaseSchema = c("main"),
+            vocabularyDatabaseSchema = c("main"),
+            aboutText = NULL,
+            tablePrefix = "",
+            cohortTableName = "cohort",
+            databaseTableName = "database",
+            enableAnnotation = TRUE,
+            enableAuthorization = FALSE
+          )
+
+          connectionHandler <- ResultModelManager::PooledConnectionHandler$new(shinySettings$connectionDetails)
+
+          resultDatabaseSettings <- list(
+            schema = shinySettings$resultsDatabaseSchema,
+            vocabularyDatabaseSchema = shinySettings$vocabularyDatabaseSchema,
+            cdTablePrefix = shinySettings$tablePrefix,
+            cgTable = shinySettings$cohortTableName,
+            databaseTable = shinySettings$databaseTableName
+          )
+
+          dataSource <-
+            OhdsiShinyModules::createCdDatabaseDataSource(connectionHandler = connectionHandler,
+                                                          resultDatabaseSettings = resultDatabaseSettings)
+
+
+          # source file ui.R inside inst package CohortDiagnostics
+          newui <- source(system.file("shiny", "DiagnosticsExplorer", "ui.R", package = "CohortDiagnostics"), local = TRUE)
+
+        }
+        # render visualization for timeCodeWAS
+        # if (r$results$studyType == "timeCodeWAS") {
+        #   # studyResults <- r$results$results
+        #   # mod_timeCodeWASVisualization_server("timeCodeWASVisualization", studyResults)
+        #   # mod_timeCodeWASVisualization_ui("timeCodeWASVisualization")
+        # }
+
+
+
+        shiny::removeUI(
+          selector = "#placeholder",
+          immediate = TRUE
+        )
+browser()
+        shiny::insertUI(
+          selector = "#add",
+          where = "afterEnd",
+          ui = newui$value
+        )
+
+
+        shiny::onFlushed(function (){
+          shinyjs::runjs('$(".wrapper").css("height", "auto");')
+          shinyjs::runjs('$(".shiny-spinner-placeholder").hide();')
+          shinyjs::runjs('$(".load-container.shiny-spinner-hidden.load1").hide();')
+          shinyjs::runjs('$("#add").click();')
+        })
+      }
+
+     })
+
+   shiny::observeEvent(input$add,{
+     # if (!is.null(r$pass)) {
+
+       sqliteDbPath <- r$sqliteDbPath
+
+       connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "sqlite", server = sqliteDbPath)
+
+       shinySettings <- list(
+         connectionDetails = connectionDetails,
+         resultsDatabaseSchema = c("main"),
+         vocabularyDatabaseSchema = c("main"),
+         aboutText = NULL,
+         tablePrefix = "",
+         cohortTableName = "cohort",
+         databaseTableName = "database",
+         enableAnnotation = TRUE,
+         enableAuthorization = FALSE
+       )
+
+       connectionHandler <- ResultModelManager::PooledConnectionHandler$new(shinySettings$connectionDetails)
+
+       resultDatabaseSettings <- list(
+         schema = shinySettings$resultsDatabaseSchema,
+         vocabularyDatabaseSchema = shinySettings$vocabularyDatabaseSchema,
+         cdTablePrefix = shinySettings$tablePrefix,
+         cgTable = shinySettings$cohortTableName,
+         databaseTable = shinySettings$databaseTableName
+       )
+
+       dataSource <-
+         OhdsiShinyModules::createCdDatabaseDataSource(connectionHandler = connectionHandler,
+                                                       resultDatabaseSettings = resultDatabaseSettings)
+
+
+       OhdsiShinyModules::cohortDiagnosticsServer(
+         id = "DiagnosticsExplorer",
+         connectionHandler = connectionHandler,
+         dataSource = dataSource,
+         resultDatabaseSettings = shinySettings
+       )
+     # }
+   })
+
+  # load results
   shiny::observeEvent(input$loadedFile, {
 
     # TODO check file is has valid contents
     ## is a zip file
     shiny::validate(
-      shiny::need(tools::file_ext(input$loadedFile$datapath) == "zip", "Please select a zip file")
-    )
-    ## contains analysis.rds
-
-    # unzip file
-    tempDir <- tempdir()
-    unzip(input$loadedFile$datapath, exdir = tempDir)
-
-    # load analysis
-    analysis <-  list(
-      cohortsSummary = readr::read_csv(file.path(tempDir, "cohortOperationsStudy", "cohortsSummary.csv")),
-      studySettings = yaml::read_yaml(file.path(tempDir,"cohortOperationsStudy",  "studySettings.yaml")),
-      results = readr::read_csv(file.path(tempDir, "cohortOperationsStudy", "results.csv"))
+      shiny::need(tools::file_ext(input$loadedFile$datapath) == "sqlite", "Please select a zip file")
     )
 
-    # copy analysis to reactive values
-    r$analysis <- analysis
+    # load results
+    results <-  list(
+      studyType= "cohortDiagnostics",
+      sqliteDbPath = input$loadedFile$datapath
+    )
+
+    # copy results to reactive values
+    r$results <- results
 
     # close modal
     shiny::removeModal()
