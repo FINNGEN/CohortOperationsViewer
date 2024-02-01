@@ -54,7 +54,7 @@ mod_timeCodeWASVisualization_ui <- function(id) {
 # server
 #
 
-mod_timeCodeWASVisualization_server <- function(id, studyResults) {
+mod_timeCodeWASVisualization_server <- function(id, f) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
