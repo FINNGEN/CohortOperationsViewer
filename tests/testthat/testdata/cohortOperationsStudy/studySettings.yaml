@@ -1,0 +1,20 @@
+studyType: timeCodeWAS
+cohortIdCases: '2'
+cohortIdControls: '1'
+temporalCovariateSettings:
+  temporalStartDays:
+  - -1827
+  - -914
+  - 0
+  - 914
+  temporalEndDays:
+  - -914
+  - 0
+  - 914
+  - 1827
+  useConditionOccurrence: yes
+  useDrugExposure: yes
+  useProcedureOccurrence: yes
+  useDeviceExposure: yes
+  useMeasurement: yes
+  useObservation: yes
