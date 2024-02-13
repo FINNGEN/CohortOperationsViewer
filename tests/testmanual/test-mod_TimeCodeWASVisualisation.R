@@ -1,10 +1,10 @@
 
 # load test results
 
-path <- testthat::test_path("testdata", "test_TimeCodeWAS.zip")
-tempDir <- tempdir()
-unzip(path, exdir = tempDir)
-studyResults <- readr::read_csv(file.path(tempDir, "cohortOperationsStudy", "results.csv"))
+pathToZip <- testthat::test_path("testdata", "analysisName_cohortDiagnostics(3).zip")
+
+analysisResultsHandler <- .zipToConnectionHandled(pathToZip)
+
 
 
 # run module --------------------------------------------------------------
@@ -15,7 +15,7 @@ app <- shiny::shinyApp(
     mod_timeCodeWASVisualization_ui("test")
   ),
   function(input,output,session){
-    mod_timeCodeWASVisualization_server("test", studyResults)
+    mod_timeCodeWASVisualization_server("test", analysisResultsHandler)
   },
   options = list(launch.browser=TRUE)
 )

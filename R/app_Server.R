@@ -8,9 +8,9 @@ app_server <- function(input, output, session) {
 
   # reactive values, starting with "r_"
   r <- shiny::reactiveValues(
-    pathToResultsFolder = NULL,
+    pathToResultsZip = NULL,
     analysisSettings = NULL,
-    analysisResults = NULL
+    analysisResultsHandlerHandler = NULL
   )
 
 
@@ -44,8 +44,6 @@ app_server <- function(input, output, session) {
   # load results and unzip to r$pathToResultsZip
   shiny::observeEvent(input$loadedFile, {
 
-    analysisSettings <- NULL
-    tempFolder <- NULL
 
     # make sure the file is a zip
     if(!grepl(".zip$", input$loadedFile$name)){
@@ -59,15 +57,20 @@ app_server <- function(input, output, session) {
       return()
     }
 
-    # create temp file with current dattime
-    tempFolder <- paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
-    dir.create(tempFolder)
+    r$pathToResultsZip <- input$loadedFile$datapath
 
-    # unzip results to temp folder
-    unzip(input$loadedFile$datapath, exdir = tempFolder)
+  })
+
+  shiny::observeEvent(r$pathToResultsZip, {
+
+    analysisSettings <- NULL
+
+    # create temp file with current dattime
+    tempFolderTime <- paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
+    dir.create(tempFolderTime)
 
     # make sure there is a file "analysisSettings.yalm"
-    if(is.character(checkmate::checkFileExists(file.path(tempFolder, "analysisSettings.yaml")))){
+    if( !("analysisSettings.yaml" %in% zip::zip_list(r$pathToResultsZip)$filename )){
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
@@ -77,7 +80,8 @@ app_server <- function(input, output, session) {
       shinyjs::reset("loadedFile")
       return()
     }
-    analysisSettings <- yaml::read_yaml(file.path(tempFolder, "analysisSettings.yaml"))
+    zip::unzip(r$pathToResultsZip, exdir = tempFolderTime, files = "analysisSettings.yaml")
+    analysisSettings <- yaml::read_yaml(file.path(tempFolderTime, "analysisSettings.yaml"))
 
     # make sure the yaml file has field "analysisType"
     if(is.character(checkmate::checkCharacter(analysisSettings$analysisType))){
@@ -94,51 +98,36 @@ app_server <- function(input, output, session) {
 
     # copy results
     r$analysisSettings <- analysisSettings
-    r$pathToResultsFolder <- tempFolder
 
   })
 
   ## based on analysis type, validate the contents of the zip file
   shiny::observe({
-    shiny::req(r$pathToResultsFolder)
+    shiny::req(r$pathToResultsZip)
     shiny::req(r$analysisSettings)
 
-    analysisResults <- NULL
+    analysisResultsHandler <- NULL
+
+    sweetAlert_spinner(paste0("Loading ", r$analysisSettings$analysisType, " analysis results..."))
 
     #
     # cohortDiagnostics
     #
     if(r$analysisSettings$analysisType == "cohortDiagnostics"){
-
-      # make sure there is a file "analysisResults.sqlite"
-      if(is.character(checkmate::checkFileExists(file.path(r$pathToResultsFolder, "analysisResults.sqlite")))){
-        shinyWidgets::sendSweetAlert(
-          session = session,
-          title = "Error",
-          text = "analysisResults.sqlite not found in the zip file",
-          type = "error"
-        )
-        shinyjs::reset("loadedFile")
-        return()
-      }else{
-        # copy results
-        analysisResults <- .analysisResultsFromCohortDiagnosticsSqlitePath(file.path(r$pathToResultsFolder, "analysisResults.sqlite"))
-      }
-
+      analysisResultsHandler <- .zipToCohortDiagnosticsData(r$pathToResultsZip)
     }
-
 
     #
     # timeCodeWAS
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
-
+      analysisResultsHandler <- .zipToConnectionHandled(r$pathToResultsZip)
     }
 
     #
     # none
     #
-    if(is.null(analysisResults)){
+    if(is.null(analysisResultsHandler)){
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
@@ -149,28 +138,30 @@ app_server <- function(input, output, session) {
       return()
     }
 
-    r$analysisResults <- analysisResults
+    remove_sweetAlert_spinner()
+
+    r$analysisResultsHandler <- analysisResultsHandler
 
   } )
 
 
-  ## based on r$analysisResults, load module ui
+  ## based on r$analysisResultsHandler, load module ui
   shiny::observe({
     shiny::req(r$analysisSettings)
-    shiny::req(r$analysisResults)
-browser()
+    shiny::req(r$analysisResultsHandler)
+
     #
     # cohortDiagnostics
     #
     if(r$analysisSettings$analysisType == "cohortDiagnostics"){
-      ui <- mod_cohortDiagnosticsVisualization_ui("cohortDiagnosticsVisualization", r$analysisResults)
+      ui <- mod_cohortDiagnosticsVisualization_ui("cohortDiagnosticsVisualization", r$analysisResultsHandler)
     }
 
     #
     # timeCodeWAS
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
-
+     ui <- mod_timeCodeWASVisualization_ui("timeCodeWASVisualization")
     }
 
     # close modal
@@ -199,23 +190,23 @@ browser()
 
 
 
-  # when the button is licked after flushed, load the module server, based on the analysis type
+  # when the button is clicked after flushed, load the module server, based on the analysis type
   shiny::observeEvent(input$hidenButton,{
     shiny::req(r$analysisSettings)
-    shiny::req(r$analysisResults)
+    shiny::req(r$analysisResultsHandler)
 
     #
     # cohortDiagnostics
     #
     if(r$analysisSettings$analysisType == "cohortDiagnostics"){
-      mod_cohortDiagnosticsVisualization_server("cohortDiagnosticsVisualization", r$analysisResults)
+      mod_cohortDiagnosticsVisualization_server("cohortDiagnosticsVisualization", r$analysisResultsHandler)
     }
 
     #
     # timeCodeWAS
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
-
+      mod_timeCodeWASVisualization_server("timeCodeWASVisualization", r$analysisResultsHandler)
     }
   })
 
@@ -225,11 +216,19 @@ browser()
 
 
 
-.analysisResultsFromCohortDiagnosticsSqlitePath <- function(cohortDiagnosticsSqlitePath) {
+.zipToCohortDiagnosticsData <- function(pathToResultsZip) {
 
-  checkmate::assertFile(cohortDiagnosticsSqlitePath)
+  tempFolderTime <-  paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
+  dir.create(tempFolderTime)
+  sqliteDbPath <- file.path(tempFolderTime, "cohortDiagnostics.sqlite")
 
-  connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "sqlite", server = cohortDiagnosticsSqlitePath)
+  CohortDiagnostics::createMergedResultsFile(
+    dataFolder = pathToResultsZip  |> dirname(),
+    sqliteDbPath = sqliteDbPath,
+    overwrite = TRUE
+  )
+
+  connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "sqlite", server = sqliteDbPath)
 
   shinySettings <- list(
     connectionDetails = connectionDetails,
@@ -258,14 +257,40 @@ browser()
                                                   resultDatabaseSettings = resultDatabaseSettings)
 
 
-  analysisResults <- list(
+  analysisResultsHandler <- list(
     connectionHandler = connectionHandler,
     dataSource = dataSource,
     resultDatabaseSettings = shinySettings
   )
 
-  return(analysisResults)
+  return(analysisResultsHandler)
 
+}
+
+
+.zipToConnectionHandled <- function(pathToResultsZip) {
+
+  tempFolderTime <-  paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
+  dir.create(tempFolderTime)
+  sqliteDbPath <- file.path(tempFolderTime, "results.sqlite")
+
+  ResultModelManager::unzipResults(
+    zipFile = pathToResultsZip,
+    resultsFolder = tempFolderTime
+  )
+
+  HadesExtras::csvFilesToSqlite(
+    dataFolder = tempFolderTime,
+    sqliteDbPath = sqliteDbPath,
+    overwrite = TRUE
+  )
+
+  analysisResultsHandler  <- ResultModelManager::ConnectionHandler$new(
+    connectionDetails = DatabaseConnector::createConnectionDetails(
+      dbms = "sqlite",
+      server = sqliteDbPath
+    )
+  )
 }
 
 

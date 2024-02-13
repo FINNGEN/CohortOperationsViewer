@@ -54,10 +54,11 @@ mod_timeCodeWASVisualization_ui <- function(id) {
 # server
 #
 
-mod_timeCodeWASVisualization_server <- function(id, f) {
+mod_timeCodeWASVisualization_server <- function(id, analysisResultsHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    studyResults  <- .analysisResultsHandler_to_studyResults(analysisResultsHandler)
 
     # fixed values
     time_periods = .get_time_periods(studyResults)
@@ -168,7 +169,7 @@ mod_timeCodeWASVisualization_server <- function(id, f) {
           dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
           dplyr::mutate(p = formatC(p, format = "e", digits = 2)) |>
           dplyr::select(name, up_in, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
-       # show table
+        # show table
         shiny::showModal(
           shiny::modalDialog(
             DT::renderDataTable({
@@ -478,3 +479,77 @@ mod_timeCodeWASVisualization_server <- function(id, f) {
   )
   return(gg_girafe)
 }
+
+
+
+.analysisResultsHandler_to_studyResults <- function(analysisResultsHandler){
+
+  studyResults  <- analysisResultsHandler$tbl("temporal_covariate_timecodewas")  |>
+    dplyr::left_join(
+      analysisResultsHandler$tbl("temporal_time_ref") |>
+        dplyr::select(time_id, start_day,end_day),
+      by = "time_id"
+    ) |>
+    dplyr::left_join(
+      analysisResultsHandler$tbl("temporal_covariate_ref") ,
+      by = "covariate_id"
+    )|>
+    dplyr::left_join(
+      analysisResultsHandler$tbl("temporal_analysis_ref") ,
+      by = "analysis_id"
+    )  |>
+    dplyr::mutate(
+      up_in = dplyr::if_else(odds_ratio>1, "Case", "Ctrl"),
+      n_cases = n_cases_yes + n_cases_no,
+      n_controls = n_controls_yes + n_controls_no
+    ) |>
+    dplyr::select(
+      covariate_id, time_id, n_cases_yes, n_controls_yes, n_cases, n_controls, n_cases_no, n_controls_no, start_day,end_day,
+      covariate_name, p_value, odds_ratio, up_in
+    ) |>
+    dplyr::collect()
+
+  studyResults <- studyResults|>
+    dplyr::mutate(time_range = paste0("from ", as.integer(start_day)," to ", as.integer(end_day)))|>
+
+    dplyr::rename(
+      covariateId = covariate_id,
+      timeId = time_id,
+      timeRange = time_range,
+      covariateName = covariate_name,
+      p = p_value,
+      OR = odds_ratio
+    )
+
+
+  return(studyResults)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
