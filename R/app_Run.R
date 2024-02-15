@@ -15,7 +15,7 @@ run_app <- function(...) {
   # checkmate::assertList(configurationList, names = "named")
 
   # set options
-  # options(shiny.maxRequestSize = 314572800)
+ options(shiny.maxRequestSize = 314572800)
 
   # set up logger
   # logger <- setup_ModalWithLog()

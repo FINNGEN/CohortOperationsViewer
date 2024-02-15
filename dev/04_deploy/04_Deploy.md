@@ -1,9 +1,3 @@
----
-title: "04_deploy"
-author: "Javier Gracia-Tabuenca"
-date: "2/7/2022"
-output: html_document
----
 
 
 ## Deployment 
