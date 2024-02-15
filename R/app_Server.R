@@ -64,7 +64,7 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(r$pathToResultsZip, {
 
     analysisSettings <- NULL
-browser()
+
     # create temp file with current dattime
     tempFolderTime <- paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
     dir.create(tempFolderTime)
