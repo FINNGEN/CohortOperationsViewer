@@ -11,9 +11,10 @@ output: html_document
 Open R in the package folder, or open project in Rstudio. 
 
 ```bash
-
+docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
 docker run -p 9998:8888 -v /tmp:/tmp  \
     eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
+firefox http://localhost:9998
 
 ```
 
