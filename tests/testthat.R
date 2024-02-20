@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(CohortOperations2)
+library(CohortOperationsViewer)
 
-test_check("CohortOperations2")
+test_check("CohortOperationsViewer")

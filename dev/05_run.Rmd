@@ -7,9 +7,9 @@ output: html_document
 
 # Running
 
-### Run in development
-Open R in the package folder, or open project in Rstudio. 
 
+## Running in SandBox 
+ 
 ```bash
 docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
 docker run -p 9998:8888 -v /tmp:/tmp  \
@@ -17,5 +17,25 @@ docker run -p 9998:8888 -v /tmp:/tmp  \
 firefox http://localhost:9998
 
 ```
+   
 
-## Running in SandBox 
+### Run locally 
+
+```bash
+docker run -p 9998:8888 -v /tmp:/tmp  \
+    eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1 
+
+```
+
+Open the browser and go to http://localhost:9998/
+
+
+## Run the docker as rstudio server for debugging 
+
+```bash
+docker run -p 8787:8787 -v /tmp:/tmp  \
+    -e PASSWORD=pass --entrypoint /init \
+    eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
+```
+
+Open the browser and go to http://localhost:8787/

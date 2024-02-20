@@ -63,7 +63,7 @@ RUN R -e "renv::restore()" \
     && R -e "renv::isolate()" 
 
 
-EXPOSE 8787
+
 EXPOSE 8888
 
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \

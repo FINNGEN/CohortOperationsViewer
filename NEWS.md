@@ -1,3 +1,3 @@
-# CohortOperations2 (development version)
+# CohortOperationsWiewer (development version)
 
 * Initial CRAN submission.

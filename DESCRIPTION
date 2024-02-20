@@ -1,4 +1,4 @@
-Package: CohortOperations2
+Package: CohortOperationsViewer
 Title: CohortOperationsViewer
 Version: 0.0.0.9000
 Authors@R: 
@@ -13,3 +13,28 @@ RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports: 
+    checkmate,
+    CohortDiagnostics,
+    DatabaseConnector,
+    dplyr,
+    DT,
+    ggiraph,
+    ggplot2,
+    ggplotify,
+    ggrepel,
+    gtable,
+    HadesExtras,
+    htmltools,
+    OhdsiShinyModules,
+    ResultModelManager,
+    scales,
+    shiny,
+    shinycustomloader,
+    shinydashboard,
+    shinyjs,
+    shinyWidgets,
+    stringr,
+    tidyr,
+    yaml,
+    zip
