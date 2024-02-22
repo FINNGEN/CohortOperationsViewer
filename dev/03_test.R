@@ -1,9 +1,9 @@
 
-# Run the app 
+# Run the app
 
 devtools::load_all(".")
 run_app(
-  options = list(port = 8080, launch.browser = TRUE)
+  options = list(port = 9998, launch.browser = TRUE)
   )
 
 
