@@ -19,10 +19,26 @@ app_ui <- function(request) {
         # TITLE
         shinydashboard::dashboardHeader(title = "CO Viewer"),
         ## SIDEBAR
-        shinydashboard::dashboardSidebar( ),
+        shinydashboard::dashboardSidebar(
+          shinydashboard::sidebarMenu(
+            shinydashboard::menuItem("About", tabName = "about", icon = shiny::icon("info"))
+          )
+        ),
         ## BODY
-        shinydashboard::dashboardBody()
+        shinydashboard::dashboardBody(
+          shinydashboard::tabItems(
+            shinydashboard::tabItem(
+              tabName = "about",
+              shinydashboard::box(
+                  title = "About",
+                  shiny::uiOutput("about"),
+                  width = 12
+              )
+            )
+          )
+        )
       )
     )
   )
+
 }

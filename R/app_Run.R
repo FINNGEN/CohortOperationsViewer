@@ -15,7 +15,7 @@ run_app <- function(...) {
   # checkmate::assertList(configurationList, names = "named")
 
   # set options
-options(shiny.maxRequestSize = 314572800)
+  options(shiny.maxRequestSize = 314572800)
   # solves error in CohortDiagnostics
   options(java.parameters = "-Xss3m")
 
@@ -29,8 +29,10 @@ options(shiny.maxRequestSize = 314572800)
         ...
       )
 
+
     # setup shiny options
-    # app$appOptions$configurationList  <- configurationList
+    app$appOptions$pathToNews  <- here::here("NEWS.md")
+    app$appOptions$gitInfo  <- paste("Branch: ", gert::git_info()$shorthand, "Commit: ", gert::git_info()$commit)
     # app$appOptions$logger  <- logger
 
     return(app)

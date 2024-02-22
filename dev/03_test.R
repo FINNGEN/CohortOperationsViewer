@@ -4,7 +4,7 @@
 devtools::load_all(".")
 run_app(
   options = list(port = 9998, launch.browser = TRUE)
-  )
+)
 
 
 
