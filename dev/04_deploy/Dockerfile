@@ -57,18 +57,19 @@ RUN --mount=type=secret,id=build_github_pat \
 #
 ARG CACHEBUST=1
 
+ARG BRANCH_NAME=development
+
 # Update the code and dependencies
 RUN git pull
+RUN git checkout $BRANCH_NAME
 RUN R -e "renv::restore()" \
-    && R -e "renv::isolate()" 
-
-
+    && R -e "renv::isolate()" \
+    && R -e "devtools::install(dependencies = FALSE)"
 
 EXPOSE 8888
 
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \
-             "devtools::load_all('.'); \ 
-             run_app(\
+             "CohortOperationsViewer::run_app(\
                 options = list(host='0.0.0.0', port=8888)\
             )"]
 
