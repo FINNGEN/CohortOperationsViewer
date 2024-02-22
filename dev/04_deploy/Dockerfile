@@ -40,8 +40,8 @@ WORKDIR /root/CohortOperationsViewer
 COPY GITHUBPAT.txt /tmp/GITHUBPAT.txt
 
 # install OHDSI HADES R packages from CRAN and GitHub, temporarily adding a GitHub Personal Access Token (PAT) to the Renviron file
-#RUN R -e "renv::restore()"
-# install OHDSI HADES R packages from CRAN and GitHub, temporarily adding a GitHub Personal Access Token (PAT) to the Renviron file
+# use RSPM
+ENV RENV_CONFIG_REPOS_OVERRIDE https://packagemanager.posit.co/cran/latest
 RUN --mount=type=secret,id=build_github_pat \
 	cp /usr/local/lib/R/etc/Renviron ./Renviron \
         && echo "GITHUB_PAT=$(cat /tmp/GITHUBPAT.txt)" >> ./Renviron \

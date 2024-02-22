@@ -220,13 +220,19 @@ app_server <- function(input, output, session) {
 
   tempFolderTime <-  paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
   dir.create(tempFolderTime)
-  sqliteDbPath <- file.path(tempFolderTime, "cohortDiagnostics.sqlite")
 
-  CohortDiagnostics::createMergedResultsFile(
-    dataFolder = pathToResultsZip  |> dirname(),
-    sqliteDbPath = sqliteDbPath,
-    overwrite = TRUE
-  )
+  sqliteDbPath <- file.path(tempFolderTime, "analysisResults.sqlite")
+
+  # if there is a file "analysisResults.sqlite" in the zip, then use it
+  if("analysisResults.sqlite" %in% zip::zip_list(pathToResultsZip)$filename){
+    zip::unzip(pathToResultsZip, exdir = tempFolderTime, files = "analysisResults.sqlite")
+  }else{
+    CohortDiagnostics::createMergedResultsFile(
+      dataFolder = pathToResultsZip  |> dirname(),
+      sqliteDbPath = sqliteDbPath,
+      overwrite = TRUE
+    )
+  }
 
   connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = "sqlite", server = sqliteDbPath)
 
@@ -272,18 +278,23 @@ app_server <- function(input, output, session) {
 
   tempFolderTime <-  paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
   dir.create(tempFolderTime)
-  sqliteDbPath <- file.path(tempFolderTime, "results.sqlite")
+  sqliteDbPath <- file.path(tempFolderTime, "analysisResults.sqlite")
 
-  ResultModelManager::unzipResults(
-    zipFile = pathToResultsZip,
-    resultsFolder = tempFolderTime
-  )
+  # if there is a file "analysisResults.sqlite" in the zip, then use it
+  if("analysisResults.sqlite" %in% zip::zip_list(pathToResultsZip)$filename){
+    zip::unzip(pathToResultsZip, exdir = tempFolderTime, files = "analysisResults.sqlite")
+  }else{
+    ResultModelManager::unzipResults(
+      zipFile = pathToResultsZip,
+      resultsFolder = tempFolderTime
+    )
 
-  HadesExtras::csvFilesToSqlite(
-    dataFolder = tempFolderTime,
-    sqliteDbPath = sqliteDbPath,
-    overwrite = TRUE
-  )
+    HadesExtras::csvFilesToSqlite(
+      dataFolder = tempFolderTime,
+      sqliteDbPath = sqliteDbPath,
+      overwrite = TRUE
+    )
+  }
 
   analysisResultsHandler  <- ResultModelManager::ConnectionHandler$new(
     connectionDetails = DatabaseConnector::createConnectionDetails(
@@ -291,6 +302,8 @@ app_server <- function(input, output, session) {
       server = sqliteDbPath
     )
   )
+
+  return(analysisResultsHandler)
 }
 
 
