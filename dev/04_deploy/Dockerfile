@@ -69,7 +69,8 @@ RUN R -e "renv::restore()" \
 EXPOSE 8888
 
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \
-             "CohortOperationsViewer::run_app(\
+             "options(java.parameters = '-Xss4m'); \
+             CohortOperationsViewer::run_app(\
                 options = list(host='0.0.0.0', port=8888)\
             )"]
 
