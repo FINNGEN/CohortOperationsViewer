@@ -211,6 +211,18 @@ app_server <- function(input, output, session) {
   })
 
 
+  output$about <- shiny::renderUI({
+    # load news from shinyoption pathtomd
+
+    shiny::div(
+      shiny::markdown(readLines(shiny::getShinyOption("pathToNews"))),
+      shiny::br(),
+      shiny::p(shiny::getShinyOption("gitInfo"))
+    )
+
+  })
+
+
 
 }
 
