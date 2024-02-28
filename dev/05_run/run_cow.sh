@@ -12,6 +12,7 @@ display_usage() {
 cleanup() {
     echo "Stopping the Docker container cow..."
     docker stop cow >/dev/null 2>&1
+    docker rm cow >/dev/null 2>&1
     echo "Script interrupted. Exiting..."
     exit 1
 }
@@ -57,6 +58,10 @@ done
 
 # update images
 docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:$docker_image_tag
+
+# Stop and remove the existing container, if it exists
+docker stop cow >/dev/null 2>&1
+docker rm cow >/dev/null 2>&1
 
 # Start the Docker container
 docker run -d -p $cow_port:8888 -v /tmp:/tmp  \
