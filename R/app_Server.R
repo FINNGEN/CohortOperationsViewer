@@ -6,6 +6,26 @@
 #' @noRd
 app_server <- function(input, output, session) {
 
+  # viewer configuration
+  shinySettings <- list(
+    resultsDatabaseSchema = c("main"),
+    vocabularyDatabaseSchema = c("main"),
+    aboutText = NULL,
+    tablePrefix = "",
+    cohortTableName = "cohort",
+    databaseTableName = "database",
+    enableAnnotation = TRUE,
+    enableAuthorization = FALSE
+  )
+
+  resultDatabaseSettings <- list(
+    schema = shinySettings$resultsDatabaseSchema,
+    vocabularyDatabaseSchema = shinySettings$vocabularyDatabaseSchema,
+    cdTablePrefix = shinySettings$tablePrefix,
+    cgTable = shinySettings$cohortTableName,
+    databaseTable = shinySettings$databaseTableName
+  )
+
   # reactive values, starting with "r_"
   r <- shiny::reactiveValues(
     pathToResultsZip = NULL,
@@ -206,7 +226,7 @@ app_server <- function(input, output, session) {
     # timeCodeWAS
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
-      mod_timeCodeWASVisualization_server("timeCodeWASVisualization", r$analysisResultsHandler)
+      mod_timeCodeWASVisualization_server("timeCodeWASVisualization", r$analysisResultsHandler, resultDatabaseSettings )
     }
   })
 
