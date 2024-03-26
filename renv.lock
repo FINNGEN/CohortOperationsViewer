@@ -299,14 +299,14 @@
     },
     "OhdsiShinyModules": {
       "Package": "OhdsiShinyModules",
-      "Version": "2.1.1",
+      "Version": "2.1.2",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "OhdsiShinyModules",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
-      "RemoteSha": "3210486d729619d150655b4bdef2936a7d89a9db",
+      "RemoteSha": "62dd14b22d7d3a36709935989d12663df5359817",
+      "RemoteHost": "api.github.com",
       "Remotes": "ohdsi/CirceR, ohdsi/ResultModelManager",
       "Requirements": [
         "CirceR",
@@ -344,7 +344,7 @@
         "tidyselect",
         "tippy"
       ],
-      "Hash": "6357fe3247087b439e54dbd48933271e"
+      "Hash": "dd115f6f85247f1024020d48ee9b6c5e"
     },
     "ParallelLogger": {
       "Package": "ParallelLogger",
@@ -1977,7 +1977,7 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.25",
+      "Version": "2.26",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1990,14 +1990,13 @@
         "jsonlite",
         "knitr",
         "methods",
-        "stringr",
         "tinytex",
         "tools",
         "utils",
         "xfun",
         "yaml"
       ],
-      "Hash": "d65e35823c817f09f4de424fcdfa812a"
+      "Hash": "9b148e7f95d33aac01f31282d49e4f44"
     },
     "roxygen2": {
       "Package": "roxygen2",
@@ -2148,7 +2147,7 @@
     },
     "shinyWidgets": {
       "Package": "shinyWidgets",
-      "Version": "0.8.1",
+      "Version": "0.8.3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2162,7 +2161,7 @@
         "sass",
         "shiny"
       ],
-      "Hash": "96bb249d21b7473dbeb0311702ef5288"
+      "Hash": "a515a78460d21328d2b8765fd5506964"
     },
     "shinycssloaders": {
       "Package": "shinycssloaders",
