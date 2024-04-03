@@ -154,11 +154,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       # ignore selected rows that are currently plot as a line
       selected_rows  <- setdiff(selected_rows, r$line_to_plot$data_id)
 
-      # continue if there is a new selection
-      shiny::req(selected_rows)
-
-
-
       line_to_plot <- NULL
       if(length(selected_rows) > 1){
         # we have a marquee selection with n > 1
@@ -167,8 +162,9 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
           dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
           dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
           dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
-          dplyr::mutate(p = formatC(p, format = "e", digits = 2)) |>
+          dplyr::mutate(p = as.numeric(formatC(p, format = "e", digits = 2))) |>
           dplyr::select(name, up_in, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
+
         # show table
         shiny::showModal(
           shiny::modalDialog(
@@ -185,7 +181,11 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                   'Ctrls %' = 'controls_per',
                   'Group' = 'GROUP',
                   'p' = 'p'
-                )
+                ),
+                options = list(
+                  formatter = list(
+                    p = function(x) format(x, scientific = TRUE))
+              )
               )
             }),
             size = "l",
