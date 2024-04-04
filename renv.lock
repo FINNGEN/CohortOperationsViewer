@@ -143,7 +143,7 @@
         "magrittr",
         "promises"
       ],
-      "Hash": "64ff3427f559ce3f2597a4fe13255cb6"
+      "Hash": "0d3ab8abbb0c3e3daa47d4dc8e17bbae"
     },
     "DatabaseConnector": {
       "Package": "DatabaseConnector",
