@@ -36,6 +36,12 @@ Imports:
     tidyr,
     yaml,
     zip
+Remotes: 
+    OHDSI/DatabaseConnector,
+    OHDSI/ResultModelManager,
+    FINNGEN/HadesExtras,
+    javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts,
+    javier-gracia-tabuenca-tuni/OhdsiShinyModules@fix-error-with-no-conceptset-cohorts
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
