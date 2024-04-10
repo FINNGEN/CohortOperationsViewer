@@ -5,7 +5,7 @@
 mod_timeCodeWASVisualization_ui <- function(id) {
   ns <- shiny::NS(id)
 
-  headerContent <- tags$li(
+  headerContent <- shiny::tags$li(
     class = "dropdown",
     style = "margin-top: 8px !important; margin-right : 5px !important"
   )
@@ -32,7 +32,7 @@ mod_timeCodeWASVisualization_ui <- function(id) {
   bodyTabItems <- shinydashboard::tabItems(
     shinydashboard::tabItem(
       tabName = "about",
-      HTML("aboutText")
+      htmltools::HTML("aboutText")
     ),
     shinydashboard::tabItem(
       tabName = "cohortDefinition",
@@ -51,7 +51,7 @@ mod_timeCodeWASVisualization_ui <- function(id) {
 
   # main
   ui <- shinydashboard::dashboardPage(
-    tags$head(tags$style(HTML(
+    shiny::tags$head(shiny::tags$style(htmltools::HTML(
       "
         th, td {
           padding-right: 10px;
