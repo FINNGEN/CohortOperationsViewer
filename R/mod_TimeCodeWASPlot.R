@@ -69,7 +69,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     time_periods = .get_time_periods(studyResults)
     gg_data_saved = .studyResults_to_gg_data(studyResults)
 
-
     # reactive values
     r <- shiny::reactiveValues(
       domains = c("condition_occurrence", "drug_exposure", "measurement", "procedure_occurrence", "observation"),
@@ -174,7 +173,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
         # we have a marquee selection with n > 1
         df_lasso <- r$gg_data |>
           dplyr::filter(data_id %in% selected_rows) |>
-          dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
           dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
           dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
           dplyr::mutate(p = as.numeric(formatC(p, format = "e", digits = 2))) |>
@@ -236,7 +234,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     shiny::observeEvent(input$table_all, {
 
       df_all <- r$gg_data |>
-        dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
         dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
         dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
         dplyr::select(name, up_in, OR, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
@@ -244,7 +241,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       # show table
       shiny::showModal(
         shiny::modalDialog(
-          DT::renderDataTable({
+          DT::renderDataTable({browser()
             DT::datatable(
               df_all,
               colnames = c(
@@ -374,7 +371,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                              "\n controls:", n_controls_yes, " (", scales::percent(controls_per, accuracy = 0.01), ")"
       ),
       link = paste0("https://atlas.app.finngen.fi/#/concept/", stringr::str_sub(code, 1, -4)),
-      up_in = factor(domain) |> as.integer() |> as.character(),
+      up_in = up_in,
       id = dplyr::row_number(),
       p_group = cut(-log10(p),
                     breaks = c(-1, 50, 100, 200, Inf ),
@@ -616,6 +613,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
 
   studyResults <- studyResults|>
     dplyr::mutate(time_range = paste0("from ", as.integer(start_day)," to ", as.integer(end_day)))|>
+    dplyr::mutate(odds_ratio = dplyr::if_else(is.na(odds_ratio), Inf, odds_ratio)) |>
     dplyr::rename(
       covariateId = covariate_id,
       timeId = time_id,
@@ -624,7 +622,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       p = p_value,
       OR = odds_ratio
     )
-
 
   return(studyResults)
 }
