@@ -63,6 +63,8 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    atlasUrl <- shiny::getShinyOption("cohortOperationsConfig")$atlasUrl
+
     studyResults  <- .analysisResultsHandler_to_studyResults(analysisResultsHandler)
 
     # fixed values
@@ -235,15 +237,19 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
 
       df_all <- r$gg_data |>
         dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
-        dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
+        dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01))|>
+        dplyr::mutate(
+          code = round(code/1000),
+          name = purrr::map2_chr(name, code, ~paste0('<a href="',atlasUrl,'/#/concept/', .y, '" target="_blank">', .x,'</a>'))
+        ) |>
         dplyr::select(name, up_in, OR, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
 
       # show table
       shiny::showModal(
         shiny::modalDialog(
-          DT::renderDataTable({browser()
+          DT::renderDataTable({
+            df_all |>
             DT::datatable(
-              df_all,
               colnames = c(
                 'Covariate name' = 'name',
                 'Type' = 'up_in',
@@ -255,7 +261,10 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                 'Group' = 'GROUP',
                 'p' = 'p'
               ),
-            ) |> DT::formatSignif(columns = c('p', 'OR'), digits = 3)
+              escape = FALSE
+            ) |>
+              DT::formatSignif(columns = c('p', 'OR'), digits = 3) |>
+              DT::formatStyle('Covariate name', cursor = 'pointer' )
           }),
           size = "l",
           easyClose = FALSE,

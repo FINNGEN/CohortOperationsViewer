@@ -7,17 +7,19 @@
 #' @export
 #' @importFrom shiny shinyApp
 #' @importFrom golem with_golem_options
-run_app <- function(...) {
+run_app <- function(pathToCohortOperationsConfigYalm, ...) {
 
   # set up configuration
-  # checkmate::assertFileExists(pathToCohortOperationsConfigYalm, extension = "yml")
-  # configurationList <- yaml::read_yaml(pathToCohortOperationsConfigYalm)
-  # checkmate::assertList(configurationList, names = "named")
+  # set up configuration
+  checkmate::assertFileExists(pathToCohortOperationsConfigYalm, extension = "yml")
+  cohortOperationsConfig <- yaml::read_yaml(pathToCohortOperationsConfigYalm)
 
   # set options
   options(shiny.maxRequestSize = 314572800)
   # solves error in CohortDiagnostics
   options(java.parameters = "-Xss3m")
+
+  options(htmlwidgets.TOJSON_ARGS = list(na = 'string'))
 
 
   # set up logger
@@ -29,6 +31,8 @@ run_app <- function(...) {
         ...
       )
 
+    # setup shiny options
+    app$appOptions$cohortOperationsConfig  <- cohortOperationsConfig
 
     # setup shiny options
     app$appOptions$pathToNews  <- here::here("NEWS.md")
