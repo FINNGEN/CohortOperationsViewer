@@ -166,8 +166,9 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       selected_rows <- selected_rows[selected_rows != ""]
 
       # ignore selected rows that are currently plot as a line
-      if(!is.null(r$line_to_plot) && !is.null(r$line_to_plot$data_id))
-        selected_rows  <- setdiff(selected_rows, r$line_to_plot$data_id)
+      selected_rows  <- setdiff(selected_rows, r$line_to_plot$data_id)
+
+      line_to_plot <- NULL
 
       if(length(selected_rows) > 1){
         # we have a marquee selection with n > 1
@@ -195,8 +196,13 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                   'Ctrls %' = 'controls_per',
                   'Group' = 'GROUP',
                   'p' = 'p'
+                ),
+                options = list(
+                  formatter = list(
+                    p = function(x) format(x, scientific = TRUE)
+                  )
                 )
-              ) |> DT::formatSignif(columns = c('p'), digits = 3)
+              )
             }),
             size = "l",
             easyClose = FALSE,
