@@ -13,29 +13,34 @@ mod_timeCodeWASPlot_ui <- function(id) {
                     shiny::h5("Observation type"),
                     shinyWidgets::awesomeCheckbox(ns("condition_occurrence"), label = "Condition occurrence", value = TRUE),
                     shinyWidgets::awesomeCheckbox(ns("drug_exposure"), label = "Drug exposure", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("measurement"), label = "Measurement", value = FALSE),
-                    shinyWidgets::awesomeCheckbox(ns("procedure_occurrence"), label = "Procedure occurrence", value = FALSE),
-                    shinyWidgets::awesomeCheckbox(ns("observation"), label = "Observation", value = FALSE),
+                    shinyWidgets::awesomeCheckbox(ns("measurement"), label = "Measurement", value = TRUE),
+                    shinyWidgets::awesomeCheckbox(ns("procedure_occurrence"), label = "Procedure occurrence", value = TRUE),
+                    shinyWidgets::awesomeCheckbox(ns("observation"), label = "Observation", value = TRUE),
       ),
       shiny::column(3, # c("-log10(p) [0,50]", "-log10(p) (50,100]", "-log10(p) (100,200]", "-log10(p) (200,Inf]")
                     shiny::h5("p-value groups"),
-                    shinyWidgets::awesomeCheckbox(ns("group_1"), label = "-log10(p) [0,50]", value = FALSE),
-                    shinyWidgets::awesomeCheckbox(ns("group_5"), label = "-log10(p) (50,100]", value = FALSE),
+                    shinyWidgets::awesomeCheckbox(ns("group_1"), label = "-log10(p) [0,50]", value = TRUE),
+                    shinyWidgets::awesomeCheckbox(ns("group_5"), label = "-log10(p) (50,100]", value = TRUE),
                     shinyWidgets::awesomeCheckbox(ns("group_10"), label = "-log10(p) (100,200]", value = TRUE),
                     shinyWidgets::awesomeCheckbox(ns("group_20"), label = "-log10(p) (200,Inf]", value = TRUE),
       ),
       shiny::column(3,
                     shinyWidgets::awesomeCheckbox(ns("show_labels"), label = "Show labels"),
                     shiny::hr(style = "margin-bottom: 0px;"),
-                    shiny::sliderInput(ns("cases_per"), label="Filter cases% <",
+                    shiny::sliderInput(ns("cases_per"), label="Label where case% greater than:",
                                        min = 0, max = 100, post  = " %", width = "200px",
                                        value = 50
                     ),
+                    shiny::hr(style = "margin-bottom: 5px;"),
+                    shiny::textInput(ns("search_string"), label = "Search labels for string (regex)", value = "", width = "60%"),
+                    shiny::actionButton(ns("search_points"), label = "Search"),
       ),
       shiny::column(3,
-                    shiny::actionButton(ns("redraw"), label = "Update CodeWAS"),
-                    shiny::hr(style = "margin-bottom: 20px;"),
-                    shiny::actionButton(ns("unselect"), label = "Unselect"),
+                    shiny::actionButton(ns("redraw"), label = shiny::tags$p("Update CodeWAS", style = "color:white; margin-bottom:0px"), class = "btn-primary"),
+                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::actionButton(ns("table_all"), label = "Show all points as table"),
+                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::actionButton(ns("unselect"), label = "Unselect all"),
       )
     ),
     shiny::hr(style = "margin-bottom: 20px;"),
@@ -67,20 +72,25 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
 
     # reactive values
     r <- shiny::reactiveValues(
-      domains = c("condition_occurrence", "drug_exposure"),
-      p_groups = c(10, 20),
+      domains = c("condition_occurrence", "drug_exposure", "measurement", "procedure_occurrence", "observation"),
+      p_groups = c(1, 5, 10, 20),
       show_labels = FALSE,
       show_labels_cases_per = 50,
       #
       gg_data = NULL,
       #
-      line_to_plot = NULL
+      line_to_plot = NULL,
+      force_update = FALSE,
     )
 
     #
     # copies input values to reactive values when redraw button is pressed
     #
+    # redraw ####
+    #
     shiny::observeEvent(input$redraw, {
+      shiny::req(input$redraw)
+      shiny::req(r$gg_data)
 
       domains <- c()
       if(input$condition_occurrence == TRUE) domains <- c("condition_occurrence")
@@ -124,12 +134,13 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     #
     # updates ggirafe plot when r$gg_data or r$show_labels or r$show_labels_cases_per changes
     #
+    # renderGirafe ####
+    #
     output$codeWASplot <- ggiraph::renderGirafe({
-
       shiny::req(r$gg_data)
-      r$show_label
       shiny::req(r$show_labels_cases_per)
-      r$selection
+      r$show_labels
+      r$force_update
 
       gg_girafe <- .gg_data_to_gg_girafe(
         gg_data = r$gg_data,
@@ -138,15 +149,18 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
         selection = r$line_to_plot)
 
       return(gg_girafe)
-      # reploting this triggers codeWASplot_selected
+      # replotting this triggers codeWASplot_selected
     })
 
     #
     # triggered when points selected by click or by lasso
     # when plot is redrawn this is also triggered
-    # this block captures the new selected points and the updates r$selected
+    # this block captures the new selected points and then updates r$selected
+    #
+    # codeWASplot_selected ####
     #
     shiny::observeEvent(input$codeWASplot_selected, {
+
       # clean selection value take only last selected
       selected_rows <- input$codeWASplot_selected
       selected_rows <- selected_rows[selected_rows != ""]
@@ -155,6 +169,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       selected_rows  <- setdiff(selected_rows, r$line_to_plot$data_id)
 
       line_to_plot <- NULL
+
       if(length(selected_rows) > 1){
         # we have a marquee selection with n > 1
         df_lasso <- r$gg_data |>
@@ -184,8 +199,9 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                 ),
                 options = list(
                   formatter = list(
-                    p = function(x) format(x, scientific = TRUE))
-              )
+                    p = function(x) format(x, scientific = TRUE)
+                  )
+                )
               )
             }),
             size = "l",
@@ -197,6 +213,8 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
             )
           )
         )
+        r$line_to_plot <- NULL
+        r$force_update <- !r$force_update
       } else {
         # single point selected, either by click or marquee
         selected_rows_clean <- stringr::str_remove_all(selected_rows, "@.*")
@@ -206,37 +224,109 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
           dplyr::mutate(position = match(time_period, time_periods)) |>
           dplyr::mutate(name = ifelse(!is.na(position), paste0("panel-1-", position), "NA")) |>
           dplyr::select(code, domain, name, cases_per, controls_per, data_id)
+        # update reactive values
+        r$line_to_plot <- line_to_plot
       }
-
-      # update reactive values
-      r$line_to_plot <- line_to_plot
-
 
     }, ignoreInit = TRUE)
 
+    #
+    # show all points as a table
+    #
+    shiny::observeEvent(input$table_all, {
+
+      df_all <- r$gg_data |>
+        dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
+        dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
+        dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
+        dplyr::select(name, up_in, OR, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
+
+      # show table
+      shiny::showModal(
+        shiny::modalDialog(
+          DT::renderDataTable({
+            DT::datatable(
+              df_all,
+              colnames = c(
+                'Covariate name' = 'name',
+                'Type' = 'up_in',
+                'OR' = 'OR',
+                'Cases n' = 'n_cases_yes',
+                'Ctrls n' = 'n_controls_yes',
+                'Cases %' = 'cases_per',
+                'Ctrls %' = 'controls_per',
+                'Group' = 'GROUP',
+                'p' = 'p'
+              ),
+            ) |> DT::formatSignif(columns = c('p', 'OR'), digits = 3)
+          }),
+          size = "l",
+          easyClose = FALSE,
+          title = paste0("Entries (", nrow(df_all), ")"),
+          footer = shiny::modalButton("Close"),
+          options = list(
+            autowidth = TRUE
+          )
+        )
+      )
+    })
 
     #
     # unselect ####
     #
     shiny::observeEvent(input$unselect, {
       # remove the previous selection
-      session$sendCustomMessage(type = ns('codeWASplot_set'), message = character(0))
       r$line_to_plot <- NULL
+      r$gg_data <- gg_data_saved
+      updateTextInput(session, "search_string", value = "")
     }, ignoreInit = TRUE)
+
+    #
+    # search ####
+    #
+
+    shiny::observeEvent(input$search_points, {
+      # search for the string in the labels
+      search_string <- input$search_string
+      if(search_string == ""){
+        return()
+      }
+      session$sendCustomMessage(type = ns('codeWASplot_set'), message = character(0))
+      # filter data
+      gg_data <- gg_data_saved |>
+        dplyr::filter(stringr::str_detect(stringr::str_to_lower(label), stringr::str_to_lower(search_string))) |>
+        dplyr::filter(domain %in% r$domains) |>
+        dplyr::filter(p_group_size %in% r$p_groups)
+
+      # update gg_data
+      r$gg_data <- gg_data
+    })
 
 
   })
 }
 
-
 .label_editor <- function(s){
-  s <- stringr::str_remove(s, "from ")
-  s <- stringr::str_replace(s, "to", " / ")
+  for(i in 1:length(s)){
+    s[[i]] <- .label_editor_single(s[[i]])
+  }
+  return(s)
+}
+
+#
+# label facet periods as months
+#
+
+.label_editor_single <- function(s){
+  limits <- as.numeric(stringr::str_extract_all(s, "[-]*\\d+")[[1]])
+  from <- round(lubridate::days(limits[1])/months(1), 1)
+  to <- round(lubridate::days(limits[2])/months(1), 1)
+  s <- paste0(from, " / ", to, "\nmonths")
+  return(s)
 }
 
 .get_time_periods <- function(studyResult){
 
-  # get time_periods
   l <- unique(studyResult$timeRange)
   l_split <- lapply(l, function(x) {stringr::str_split(x, " ", simplify = TRUE)})
   time_periods <- as.data.frame(do.call(rbind, l_split)) |>
@@ -279,7 +369,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       label = stringr::str_remove(label, "[:blank:]+$"),
       label = stringr::str_c(domain, " : ", name,
                              "\n-log10(p)=", scales::number(-log10(p), accuracy = 0.1) ,
-                             "\n log10(OR) = ", scales::number(log10(OR), accuracy = 0.1),
+                             "\n log10(OR) = ", ifelse(is.na(OR), "", scales::number(log10(OR), accuracy = 0.1)),
                              "\n cases:", n_cases_yes, " (", scales::percent(cases_per, accuracy = 0.01), ")",
                              "\n controls:", n_controls_yes, " (", scales::percent(controls_per, accuracy = 0.01), ")"
       ),
@@ -309,13 +399,14 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
   return(gg_data)
 }
 
+
+
 .gg_data_to_gg_girafe <- function(
     gg_data,
-    show_labels, show_labels_cases_per,
+    show_labels,
+    show_labels_cases_per,
     selection
 ){
-
-  #
   # adjust the label area according to facet width
   facet_max_x <- max( gg_data$controls_per, 0.03, na.rm = TRUE)
   facet_max_y <- max( gg_data$cases_per, 0.03, na.rm = TRUE)
@@ -388,7 +479,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       legend.key.width = grid::unit(10, "mm"),
       legend.position = "bottom",
       legend.direction = "vertical",
-      strip.text.x = ggplot2::element_text(size = 10)
+      strip.text.x = ggplot2::element_text(size = 8)
     ) +
     ggplot2::scale_color_manual(values = c("darkgray")) +
     ggplot2::scale_fill_manual(values = c(
@@ -396,7 +487,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       "drug_exposure" = "lightblue2",
       "measurement" = "palegreen",
       "procedure_occurrence" = "plum1",
-      "observation" = "gray"),
+      "observation" = "orange"),
       labels = c(
         "condition_occurrence" = "Condition occurrence",
         "drug_exposure" = "Drug exposure",
@@ -456,30 +547,44 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       skip_selection <- TRUE
     } else {
       selected_items <- ""
+      skip_selection <- FALSE
     }
 
     gg_plot <- ggplotify::as.ggplot(g)
   } else {
+    skip_selection <- FALSE
     gg_plot <- gg_fig
   }
 
+  #
+  # convert ggplot to girafe object
+  #
   gg_girafe <- ggiraph::girafe(ggobj = gg_plot, width_svg = 15)
-  gg_girafe <- ggiraph::girafe_options(gg_girafe,
-                                       ggiraph::opts_sizing(rescale = TRUE, width = 1.0),
-                                       ggiraph::opts_hover(
-                                         css = "fill-opacity:1;fill:red;stroke:black;",
-                                         reactive = FALSE
-                                       ),
-                                       ggiraph::opts_selection(
-                                         type = c("multiple"),
-                                         only_shiny = TRUE,
-                                         selected = selected_items
-                                       )
+
+  #
+  # modify girafe object
+  #
+  gg_girafe <- ggiraph::girafe_options(
+    gg_girafe,
+    ggiraph::opts_sizing(rescale = TRUE, width = 1.0),
+    ggiraph::opts_hover(
+      css = "fill-opacity:1;fill:red;stroke:black;",
+      reactive = FALSE
+    ),
+    ggiraph::opts_selection(
+      type = c("multiple"),
+      only_shiny = TRUE,
+      selected = ifelse(skip_selection == TRUE, character(0), selected_items)
+    ),
+    ggiraph::opts_toolbar(
+      position = "topright",
+      hidden = c("zoom", "zoomReset", "lasso_deselect"),
+      delay_mouseout = 100000
+    )
 
   )
   return(gg_girafe)
 }
-
 
 
 .analysisResultsHandler_to_studyResults <- function(analysisResultsHandler){
@@ -511,7 +616,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
 
   studyResults <- studyResults|>
     dplyr::mutate(time_range = paste0("from ", as.integer(start_day)," to ", as.integer(end_day)))|>
-
     dplyr::rename(
       covariateId = covariate_id,
       timeId = time_id,
