@@ -12,7 +12,13 @@ output: html_document
  
 ```bash
 docker pull eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
+
+echo "
+atlasUrl: https://atlas-demo.ohdsi.org/
+" > /tmp/cow_config.yml
+
 docker run -p 9998:8888 -v /tmp:/tmp  \
+    -e COW_CONFIG_FILE="/tmp/cow_config.yml" \
     eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1
 firefox http://localhost:9998
 
@@ -22,7 +28,12 @@ firefox http://localhost:9998
 ### Run locally 
 
 ```bash
+echo "
+atlasUrl: https://atlas-demo.ohdsi.org/
+" > /tmp/cow_config.yml
+
 docker run -p 9998:8888 -v /tmp:/tmp  \
+    -e COW_CONFIG_FILE="/tmp/cow_config.yml" \
     eu.gcr.io/finngen-sandbox-v3-containers/cow:0.0.1 
 
 ```

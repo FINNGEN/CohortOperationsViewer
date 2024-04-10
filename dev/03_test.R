@@ -3,6 +3,7 @@
 
 devtools::load_all(".")
 run_app(
+  pathToCohortOperationsConfigYalm = testthat::test_path("config", "cohortOperationsConfig.yml"),
   options = list(port = 9998, launch.browser = TRUE)
 )
 

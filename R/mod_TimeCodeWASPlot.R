@@ -63,12 +63,13 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    atlasUrl <- shiny::getShinyOption("cohortOperationsConfig")$atlasUrl
+
     studyResults  <- .analysisResultsHandler_to_studyResults(analysisResultsHandler)
 
     # fixed values
     time_periods = .get_time_periods(studyResults)
     gg_data_saved = .studyResults_to_gg_data(studyResults)
-
 
     # reactive values
     r <- shiny::reactiveValues(
@@ -174,7 +175,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
         # we have a marquee selection with n > 1
         df_lasso <- r$gg_data |>
           dplyr::filter(data_id %in% selected_rows) |>
-          dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
           dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
           dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
           dplyr::mutate(p = as.numeric(formatC(p, format = "e", digits = 2))) |>
@@ -236,17 +236,20 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     shiny::observeEvent(input$table_all, {
 
       df_all <- r$gg_data |>
-        dplyr::mutate(up_in = ifelse(up_in == 1, "Case", "Ctrl")) |>
         dplyr::mutate(cases_per = scales::percent(cases_per, accuracy = 0.01)) |>
-        dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01)) |>
+        dplyr::mutate(controls_per = scales::percent(controls_per, accuracy = 0.01))|>
+        dplyr::mutate(
+          code = round(code/1000),
+          name = purrr::map2_chr(name, code, ~paste0('<a href="',atlasUrl,'/#/concept/', .y, '" target="_blank">', .x,'</a>'))
+        ) |>
         dplyr::select(name, up_in, OR, n_cases_yes, n_controls_yes, cases_per, controls_per, GROUP, p)
 
       # show table
       shiny::showModal(
         shiny::modalDialog(
           DT::renderDataTable({
+            df_all |>
             DT::datatable(
-              df_all,
               colnames = c(
                 'Covariate name' = 'name',
                 'Type' = 'up_in',
@@ -258,7 +261,10 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                 'Group' = 'GROUP',
                 'p' = 'p'
               ),
-            ) |> DT::formatSignif(columns = c('p', 'OR'), digits = 3)
+              escape = FALSE
+            ) |>
+              DT::formatSignif(columns = c('p', 'OR'), digits = 3) |>
+              DT::formatStyle('Covariate name', cursor = 'pointer' )
           }),
           size = "l",
           easyClose = FALSE,
@@ -374,7 +380,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                              "\n controls:", n_controls_yes, " (", scales::percent(controls_per, accuracy = 0.01), ")"
       ),
       link = paste0("https://atlas.app.finngen.fi/#/concept/", stringr::str_sub(code, 1, -4)),
-      up_in = factor(domain) |> as.integer() |> as.character(),
+      up_in = up_in,
       id = dplyr::row_number(),
       p_group = cut(-log10(p),
                     breaks = c(-1, 50, 100, 200, Inf ),
@@ -616,6 +622,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
 
   studyResults <- studyResults|>
     dplyr::mutate(time_range = paste0("from ", as.integer(start_day)," to ", as.integer(end_day)))|>
+    dplyr::mutate(odds_ratio = dplyr::if_else(is.na(odds_ratio), Inf, odds_ratio)) |>
     dplyr::rename(
       covariateId = covariate_id,
       timeId = time_id,
@@ -624,7 +631,6 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       p = p_value,
       OR = odds_ratio
     )
-
 
   return(studyResults)
 }
