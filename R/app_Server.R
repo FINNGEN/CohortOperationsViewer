@@ -138,10 +138,10 @@ app_server <- function(input, output, session) {
     }
 
     #
-    # timeCodeWAS
+    # timeCodeWAS, codeWAS
     #
-    if(r$analysisSettings$analysisType == "timeCodeWAS"){
-      analysisResultsHandler <- .zipToConnectionHandled(r$pathToResultsZip)
+    if(r$analysisSettings$analysisType %in% c("timeCodeWAS", "codeWAS")){
+      analysisResultsHandler <- .zipToConnectionHandled(r$pathToResultsZip, r$analysisSettings$analysisType)
     }
 
     #
@@ -182,6 +182,13 @@ app_server <- function(input, output, session) {
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
      ui <- mod_timeCodeWASVisualization_ui("timeCodeWASVisualization")
+    }
+
+    #
+    # codeWAS
+    #
+    if(r$analysisSettings$analysisType == "codeWAS"){
+      ui <- mod_codeWASVisualization_ui("codeWASVisualization")
     }
 
     # close modal
@@ -227,6 +234,13 @@ app_server <- function(input, output, session) {
     #
     if(r$analysisSettings$analysisType == "timeCodeWAS"){
       mod_timeCodeWASVisualization_server("timeCodeWASVisualization", r$analysisResultsHandler, resultDatabaseSettings )
+    }
+
+    #
+    # timeCodeWAS
+    #
+    if(r$analysisSettings$analysisType == "codeWAS"){
+      mod_codeWASVisualization_server("codeWASVisualization", r$analysisResultsHandler, resultDatabaseSettings )
     }
   })
 
@@ -306,7 +320,7 @@ app_server <- function(input, output, session) {
 }
 
 
-.zipToConnectionHandled <- function(pathToResultsZip) {
+.zipToConnectionHandled <- function(pathToResultsZip, analysis ) {
 
   tempFolderTime <-  paste0(tempfile(), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
   dir.create(tempFolderTime)
@@ -324,7 +338,8 @@ app_server <- function(input, output, session) {
     HadesExtras::csvFilesToSqlite(
       dataFolder = tempFolderTime,
       sqliteDbPath = sqliteDbPath,
-      overwrite = TRUE
+      overwrite = TRUE,
+      analysis = analysis
     )
   }
 
