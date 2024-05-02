@@ -2,7 +2,7 @@
 # load test results
 devtools::load_all(".")
 
-pathToZip <- testthat::test_path("testdata", "analysisResultsTimeCodeWASSqlite.zip")
+pathToZip <- testthat::test_path("testdata", "codeWAS/eunomia_asthmaVSasthmaControls_CodeWASSqlite.zip")
 
 analysisResultsHandler <- .zipToConnectionHandled(pathToZip)
 
