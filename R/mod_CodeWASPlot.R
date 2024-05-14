@@ -97,10 +97,10 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
             shinyWidgets::pickerInput(
               ns("p_value"),
               "p",
-              choices = c('-log10(p) [0,50]', '-log10(p) [50,100]', '-log10(p) [100,200]', '-log10(p) [200, Inf]'),
-              selected = c('-log10(p) [0,50]', '-log10(p) [50,100]', '-log10(p) [100,200]', '-log10(p) [200, Inf]'),
+              choices = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'),
+              selected = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'),
               multiple = TRUE,
-              options = list(`actions-box` = TRUE, `selected-text-format` = "count > 3", `count-selected-text` = "{0} classes selected")
+              options = list(`actions-box` = TRUE, `selected-text-format` = "count > 1", `count-selected-text` = "{0} classes selected")
             )
           )
         )
@@ -113,11 +113,11 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
       r$codeWASData <- analysisResultsHandler$tbl('codewas_results') |>
         dplyr::left_join(analysisResultsHandler$tbl('covariate_ref'), by = c('covariate_id' = 'covariate_id'))  |>
         dplyr::left_join(analysisResultsHandler$tbl('analysis_ref'), by = c('analysis_id' = 'analysis_id')) |>
-        dplyr::mutate(odds_ratio = ifelse(is.na(odds_ratio), exp(beta), odds_ratio)) |>
+        dplyr::mutate(odds_ratio = ifelse(is.na(odds_ratio) & model_type != 'linear', exp(beta), odds_ratio)) |>
         dplyr:::select(-c('is_binary', 'missing_means_zero')) |>
         dplyr::mutate(p_log = cut(-log10(p_value),
-                                  breaks = c(0, 50, 100, 200, Inf),
-                                  labels = c('-log10(p) [0,50]', '-log10(p) [50,100]', '-log10(p) [100,200]', '-log10(p) [200, Inf]'))
+                                  breaks = c(0, 5, 100, Inf),
+                                  labels = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'))
         ) |>
         tibble::as_tibble()
     })
@@ -166,17 +166,18 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           ) |>
           dplyr::select(
             database_id, domain_id, analysis_name, covariate_name, concept_id,
-            n_cases, n_controls, p_value, odds_ratio, beta, standard_error, model_type, run_notes, analysis_id,
+            n_cases, n_controls, p_value, odds_ratio, beta, standard_error, model_type, run_notes,
             covariate_name_full
           ),
         escape = FALSE,
         class = 'display nowrap compact',
         selection = 'single',
+        rownames = FALSE,
         colnames = c(
           'Database' = 'database_id',
           'Domain' = 'domain_id',
           'Analysis' = 'analysis_name',
-          'Name' = 'covariate_name',
+          'Covariate Name' = 'covariate_name',
           'Concept ID' = 'concept_id',
           # 'Cov. ID' = 'covariate_id',
           # 'N tot' = 'n_total',
@@ -187,8 +188,8 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           'Beta' = 'beta',
           'SE' = 'standard_error',
           'Model' = 'model_type',
+          # 'ID' = 'analysis_id',
           'Notes' = 'run_notes',
-          'Analysis ID' = 'analysis_id',
           # 'Binary' = 'is_binary',
           # 'Missing mean zero' = 'missing_means_zero'
           'covariate_name_full' = 'covariate_name_full'
@@ -197,7 +198,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           # rowCallback to show the full covariate name as a tooltip
           rowCallback = htmlwidgets::JS(
               "function(row, data) {",
-              "var full_text = data[15]", # covariate_name_full
+              "var full_text = data[13]", # covariate_name_full
               "$('td', row).attr('title', full_text);",
               "}"
           ),
@@ -205,28 +206,28 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           createdRow = htmlwidgets::JS(
             "function(row, data, dataIndex) {",
             "  for(var i=0; i<data.length; i++){",
-            "    if(data[i] === null && i != 13){", # skip Notes-column
+            "    if(data[i] === null && ![5, 6, 12].includes(i)){", # skip Notes-column
             "      $('td:eq('+i+')', row).html('NA')",
             "        .css({'color': 'rgb(226,44,41)', 'font-style': 'italic'});",
             "    }",
             "  }",
             "}"
           ),
-          autoWidth = TRUE,
+          # autoWidth = TRUE,
           # arrange the table by p_value
-          order = list(list(8, 'asc')), # p_value
+          order = list(list(7, 'asc')), # p_value
           # scrollX = TRUE,
           columnDefs = list(
-            list(width = '75px', targets = c(4)), # covariate_name
-            list(width = '50px', targets = c(3)), # concept_id
-            list(width = '45px', targets = c(1,2,6,7,11,12, 13, 14)),
+            list(width = '70px', targets = c(3, 13)), # covariate_name
+            list(width = '45px', targets = c(2)), # concept_id
+            list(width = '40px', targets = c(0,1,4,5,6,7, 10, 11)),
             list(width = '50px', targets = c(8, 9)), # p_value, OR
-            list(visible = FALSE, targets = c(15))
+            list(visible = FALSE, targets = c(13))
           ),
           pageLength = 20,
           lengthMenu = c(10, 15, 20, 25, 30)
         )
-      ) |> DT::formatStyle('Name', cursor = 'pointer' )
+      ) |> DT::formatStyle('Covariate Name', cursor = 'pointer' )
     })
 
     #
