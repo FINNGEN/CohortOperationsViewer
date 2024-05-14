@@ -9,9 +9,7 @@ mod_codeWASPlot_ui <- function(id) {
     htmltools::h4("CodeWAS Results"),
     shiny::div(
       style = "margin-top: 10px; margin-bottom: 20px;",
-      # shiny::tags$em("CodeWAS results are displayed below. The table is sorted by p-value in ascending order."),
       shiny::textOutput(ns("total_n")),
-
     ),
     shiny::uiOutput(ns("codeWASFilter")),
     htmltools::hr(style = "margin-top: 10px; margin-bottom: 10px;"),
@@ -37,23 +35,15 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
       paste("Total N: ", dplyr::first(r$codeWASData$n_total))
     })
 
-    rowCallback <- c(
-      "function(row, data){",
-      "  for(var i=0; i<data.length; i++){",
-      "    if(data[i] === null){",
-      "      $('td:eq('+i+')', row).html('NA')",
-      "        .css({'color': 'rgb(226,44,41)', 'font-style': 'italic'});",
-      "    }",
-      "  }",
-      "}"
-    )
-
     # reactive values
     r <- shiny::reactiveValues(
       codeWASData = NULL,
       filteredCodeWASData = NULL
     )
 
+    #
+    # render the CodeWAS filters from the data
+    #
     output$codeWASFilter <- shiny::renderUI({
       req(r$codeWASData)
 
@@ -116,8 +106,10 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
         )
     })
 
+    #
+    # load the CodeWAS data
+    #
     shiny::observe({
-
       r$codeWASData <- analysisResultsHandler$tbl('codewas_results') |>
         dplyr::left_join(analysisResultsHandler$tbl('covariate_ref'), by = c('covariate_id' = 'covariate_id'))  |>
         dplyr::left_join(analysisResultsHandler$tbl('analysis_ref'), by = c('analysis_id' = 'analysis_id')) |>
@@ -130,11 +122,12 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
         tibble::as_tibble()
     })
 
-
+    #
+    # filter the data
+    #
     shiny::observe({
       req(r$codeWASData)
 
-      # filter the data
       r$filteredCodeWASData <- r$codeWASData |>
         dplyr::filter(
           if (!is.null(input$database)) database_id %in% input$database else FALSE,
@@ -145,10 +138,9 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
         )
     })
 
-    observeEvent(input$codeWASTable_click, {
-      message("row selected")
-    })
-
+    #
+    # render the CodeWAS table
+    #
     output$codeWAStable <- DT::renderDataTable({
       req(r$filteredCodeWASData)
 
@@ -173,7 +165,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
             covariate_name = purrr::map2_chr(covariate_name, covariate_id, ~paste0('<a href="',atlasUrl,'/#/concept/', .y, '" target="_blank">', .x,'</a>'))
           ) |>
           dplyr::select(
-            database_id, domain_id, analysis_name, covariate_name, concept_id, # covariate_id,
+            database_id, domain_id, analysis_name, covariate_name, concept_id,
             n_cases, n_controls, p_value, odds_ratio, beta, standard_error, model_type, run_notes, analysis_id,
             covariate_name_full
           ),
@@ -202,25 +194,26 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           'covariate_name_full' = 'covariate_name_full'
         ),
         options = list(
+          # rowCallback to show the full covariate name as a tooltip
           rowCallback = htmlwidgets::JS(
               "function(row, data) {",
-              "var full_text = data[15]",
+              "var full_text = data[15]", # covariate_name_full
               "$('td', row).attr('title', full_text);",
               "}"
           ),
-          # initComplete = htmlwidgets::JS(c(
-          #   "function(settings){",
-          #   "  var table = settings.oInstance.api();",
-          #   "  var cell = table.cell(2,2);",
-          #   "  cell.node().setAttribute('title', 'TOOLTIP CONTENTS');",
-          #   "}")),
-          rowCallback = htmlwidgets::JS(rowCallback),
-          # rowCallback = htmlwidgets::JS(
-          #   c("function(row, data) {",
-          #   "var full_text = 'data[4];",
-          #   "$('td', row).attr('title', full_text);",
-          #   "}")),
+          # change the color of the cells with NA (except for the Notes column)
+          createdRow = htmlwidgets::JS(
+            "function(row, data, dataIndex) {",
+            "  for(var i=0; i<data.length; i++){",
+            "    if(data[i] === null && i != 13){", # skip Notes-column
+            "      $('td:eq('+i+')', row).html('NA')",
+            "        .css({'color': 'rgb(226,44,41)', 'font-style': 'italic'});",
+            "    }",
+            "  }",
+            "}"
+          ),
           autoWidth = TRUE,
+          # arrange the table by p_value
           order = list(list(8, 'asc')), # p_value
           # scrollX = TRUE,
           columnDefs = list(
@@ -236,6 +229,9 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
       ) |> DT::formatStyle('Name', cursor = 'pointer' )
     })
 
+    #
+    # Download the CodeWAS results table as a csv file
+    #
     output$downloadCodeWAS <- downloadHandler(
       filename = function() {
         paste(Sys.time(), '_result.csv', sep='')
