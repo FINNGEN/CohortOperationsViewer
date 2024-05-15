@@ -97,8 +97,8 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
             shinyWidgets::pickerInput(
               ns("p_value"),
               "p",
-              choices = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'),
-              selected = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'),
+              choices = c('-log10(p) (0,5]', '-log10(p) (5,100]', '-log10(p) (100,Inf]'),
+              selected = c('-log10(p) (0,5]', '-log10(p) (5,100]', '-log10(p) (100,Inf]'),
               multiple = TRUE,
               options = list(`actions-box` = TRUE, `selected-text-format` = "count > 1", `count-selected-text` = "{0} classes selected")
             )
@@ -117,7 +117,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
         dplyr:::select(-c('is_binary', 'missing_means_zero')) |>
         dplyr::mutate(p_log = cut(-log10(p_value),
                                   breaks = c(0, 5, 100, Inf),
-                                  labels = c('-log10(p) [0,5]', '-log10(p) [5,100]', '-log10(p) [100,Inf]'))
+                                  labels = c('-log10(p) (0,5]', '-log10(p) (5,100]', '-log10(p) (100,Inf]'))
         ) |>
         tibble::as_tibble()
     })
