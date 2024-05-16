@@ -6,9 +6,73 @@ mod_cohortOverlapsPlot_ui <- function(id) {
   ns <- shiny::NS(id)
 
   htmltools::tagList(
-    reactable::reactableOutput(ns("tmp_cohortOverlapstable"))
-  )
+    shinybrowser::detect(),
+    shiny::fluidPage(
+      title = "UpSet plot",
+      shinyjs::useShinyjs(),
 
+      shiny::div(
+        style = "margin: 10px; width: 100%;",
+        shiny::actionButton(ns("upset_controls_button"), "Show/Hide Settings")
+      ),
+
+      shinyjs::hidden(
+        shiny::div(
+          id = ns("upset_controls"),
+          fluidRow(
+            shinyWidgets::chooseSliderSkin("Flat"),
+            shiny::column(width = 4, align = "left",
+                          shiny::div(style = "height: 85px; width: 100%;",
+                                     shiny::sliderInput(ns("nsets"), "Number of sets", min = 1, max = 20, value = 8, step = 1),
+                          ),
+                          div(style = "height: 85px; width: 100%;",
+                              shiny::sliderInput(ns("nintersects"), "Number of intersections", min = 1, max = 60, value = 40, step = 1),
+                          ),
+                          div(style = "height: 85px; width: 100%;",
+                              shiny::sliderInput(ns("set_size.scale_max"), "Set size scale max", min = 0.5, max = 2.5, value = 1.3, step = 0.1),
+                          ),
+            ),
+            column(4, align = "left",
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("text_scale"), "Text scale", min = 0.5, max = 3, value = 2.0, step = 0.1),
+                   ),
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("point_size"), "Point size", min = 1, max = 10, value = 4, step = 1),
+                   ),
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("number_angles"), "Number angles", min = 0, max = 45, value = 0, step = 1),
+                   ),
+            ),
+            column(4, align = "left",
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("set_size.numbers_size"), "Set size number size", min = 0.5, max = 30, value = 7, step = 0.1),
+                   ),
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("plot_width"), "Plot width (in)", min = 2, max = 30, value = 18, step = 0.5),
+                   ),
+                   div(style = "height: 85px; width: 100%;",
+                       shiny::sliderInput(ns("plot_height"), "Plot height (in)", min = 2, max = 30, value = 10, step = 0.5),
+                   ),
+            ),
+          ),
+          fluidRow(
+            column(12, align = "left",
+                   shiny::checkboxInput(ns("show_numbers"), "Show intersection sizes", value = TRUE),
+                   shiny::checkboxInput(ns("set_size_show"), "Show set sizes", value = TRUE),
+            )
+          )
+        )
+      ), # hidden
+      fluidRow(
+        column(12, align = "center",
+               shiny::plotOutput(ns("upset_plot")),
+               div(style = "margin-top: 20px;",
+                   shiny::downloadButton(ns("download"), "Download plot", icon = icon("download"))
+               )
+        )
+      ),
+    ),
+  )
 }
 
 
@@ -22,12 +86,81 @@ mod_cohortOverlapsPlot_server <- function(id, analysisResultsHandler) {
 
     atlasUrl <- shiny::getShinyOption("cohortOperationsConfig")$atlasUrl
 
-
-    output$tmp_cohortOverlapstable <- reactable::renderReactable({
+    #
+    # cohort overlaps
+    #
+    cohortOverlaps <- shiny::reactive({
       cohortOverlapsData <- analysisResultsHandler$tbl('CohortOverlaps_results') |>
         tibble::as_tibble()
-      reactable::reactable(cohortOverlapsData)
     })
 
+    #
+    # show/hide the upset plot controls
+    #
+    shiny::observeEvent(input$upset_controls_button, {
+      shinyjs::toggle(id = "upset_controls")
+    })
+
+    #
+    # render the upset plot
+    #
+    output$upset_plot <- shiny::renderPlot({
+
+      build_upset_plot()
+    })
+
+    #
+    # build the upset plot
+    #
+    build_upset_plot <- shiny::reactive({
+      req(cohortOverlaps())
+
+      cohortOverlapsData <- cohortOverlaps()  |>
+        dplyr::mutate(cohort_id_combinations = gsub("-", "&", cohort_id_combinations))  |>
+        dplyr::mutate(cohort_id_combinations = gsub("^&|&$", "", cohort_id_combinations))
+
+      upset_expr <- with(cohortOverlapsData, setNames(number_of_subjects, cohort_id_combinations))
+
+      UpSetR::upset(
+        UpSetR::fromExpression(upset_expr),
+        nsets = input$nsets,
+        nintersects = input$nintersects,
+        sets.bar.color = "black",
+        order.by = "freq",
+        keep.order = TRUE,
+        text.scale = input$text_scale,
+        set_size.show = input$set_size_show,
+        point.size = input$point_size,
+        show.numbers = ifelse(input$show_numbers, "yes", "no"),
+        set_size.numbers_size = input$set_size.numbers_size,
+        set_size.scale_max = input$set_size.scale_max * sum(upset_expr) * 1.1, # 10% margin - is there a better way to estimate this?
+        number.angles = input$number_angles,
+      )
+    })
+
+    #
+    # download the plot as a PDF file
+    #
+    output$download <- downloadHandler(
+      filename = function(){
+        paste("upset_plot_", Sys.Date(), ".pdf", sep = "")
+      },
+
+      content = function(file){
+        grDevices::cairo_pdf(filename = file,
+                             width = input$plot_width,
+                             height = input$plot_height,
+                             pointsize = 12,
+                             family = "sans",
+                             bg = "transparent",
+                             antialias = "subpixel",
+                             fallback_resolution = 300
+        )
+        print(build_upset_plot())
+        dev.off()
+      },
+
+      contentType = "application/pdf"
+    )
   })
 }
