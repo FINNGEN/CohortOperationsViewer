@@ -117,6 +117,23 @@
       ],
       "Hash": "1ba14745ec29dc17a7226cd079e93d8b"
     },
+    "CommonDataModel": {
+      "Package": "CommonDataModel",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "DBI",
+        "DatabaseConnector",
+        "SqlRender",
+        "dplyr",
+        "rJava",
+        "readr",
+        "rmarkdown",
+        "stringr"
+      ],
+      "Hash": "d009324efba4c142b431202580eb09d1"
+    },
     "CompQuadForm": {
       "Package": "CompQuadForm",
       "Version": "1.4.3",
@@ -182,21 +199,23 @@
     },
     "Eunomia": {
       "Package": "Eunomia",
-      "Version": "1.0.3",
+      "Version": "2.0.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "Eunomia",
       "RemoteRef": "main",
-      "RemoteSha": "0f95ce9bfba8032e91df593538d8e508189db650",
+      "RemoteSha": "79c89443c8fe424e9dc19ea10e80c1d8d36efa0c",
       "Requirements": [
-        "DatabaseConnector",
+        "CommonDataModel",
+        "DBI",
         "RSQLite",
-        "SqlRender",
-        "readr"
+        "arrow",
+        "readr",
+        "rlang"
       ],
-      "Hash": "79abc63979a72347150f5541e2c581ea"
+      "Hash": "c72e350c559c018b299c3c492ed2c837"
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
@@ -311,11 +330,11 @@
       "Version": "2.1.2",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "OhdsiShinyModules",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
       "RemoteSha": "62dd14b22d7d3a36709935989d12663df5359817",
+      "RemoteHost": "api.github.com",
       "Remotes": "ohdsi/CirceR, ohdsi/ResultModelManager",
       "Requirements": [
         "CirceR",
@@ -473,11 +492,11 @@
       "Version": "0.5.6",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
       "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
+      "RemoteHost": "api.github.com",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -509,6 +528,24 @@
       ],
       "Hash": "513c5e6da774c913430561a3912c5354"
     },
+    "UpSetR": {
+      "Package": "UpSetR",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "ggplot2",
+        "grDevices",
+        "gridExtra",
+        "methods",
+        "plyr",
+        "scales",
+        "stats",
+        "utils"
+      ],
+      "Hash": "f6ef89503aaff474873f8bc1823894e1"
+    },
     "anytime": {
       "Package": "anytime",
       "Version": "0.3.9",
@@ -538,6 +575,28 @@
       ],
       "Hash": "fcdb2e90a85ae606bc19d1fd43db5cc6"
     },
+    "arrow": {
+      "Package": "arrow",
+      "Version": "15.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "assertthat",
+        "bit64",
+        "cpp11",
+        "glue",
+        "methods",
+        "purrr",
+        "rlang",
+        "stats",
+        "tidyselect",
+        "utils",
+        "vctrs"
+      ],
+      "Hash": "85c24dd7844977e4a680ba28f576125c"
+    },
     "askpass": {
       "Package": "askpass",
       "Version": "1.2.0",
@@ -547,6 +606,16 @@
         "sys"
       ],
       "Hash": "cad6cf7f1d5f6e906700b9d3e718c796"
+    },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "tools"
+      ],
+      "Hash": "50c838a310445e954bc13f26f26a6ecf"
     },
     "backports": {
       "Package": "backports",
@@ -2151,6 +2220,17 @@
       ],
       "Hash": "a1ac5c03ad5ad12b9d1597e00e23c3dd"
     },
+    "plyr": {
+      "Package": "plyr",
+      "Version": "1.8.9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "6b8177fd19982f0020743fadbfdbd933"
+    },
     "pool": {
       "Package": "pool",
       "Version": "1.0.3",
@@ -2633,6 +2713,17 @@
         "shiny"
       ],
       "Hash": "a515a78460d21328d2b8765fd5506964"
+    },
+    "shinybrowser": {
+      "Package": "shinybrowser",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "shiny"
+      ],
+      "Hash": "0f3fec942ab67d497e1d89f71d99b637"
     },
     "shinycssloaders": {
       "Package": "shinycssloaders",
