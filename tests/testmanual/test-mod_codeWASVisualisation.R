@@ -2,7 +2,7 @@
 # load test results
 devtools::load_all(".")
 
-pathToZip <- testthat::test_path("testdata", "codeWAS/eunomia_asthmaVSasthmaControls_CodeWASSqlite.zip")
+pathToZip <- testthat::test_path("testdata", "codeWAS", "eunomia_asthmaVSasthmaControls_CodeWASSqlite.zip")
 
 analysisResultsHandler <- .zipToConnectionHandled(pathToZip)
 
@@ -33,10 +33,10 @@ devtools::load_all(".")
 
 app <- shiny::shinyApp(
   shiny::fluidPage(
-    mod_timeCodeWASVisualization_ui("test")
+    mod_codeWASVisualization_ui("test")
   ),
   function(input,output,session){
-    mod_timeCodeWASVisualization_server("test", analysisResultsHandler, resultDatabaseSettings)
+    mod_codeWASVisualization_server("test", analysisResultsHandler, resultDatabaseSettings)
   },
   options = list(launch.browser=TRUE)
 )
