@@ -528,6 +528,24 @@
       ],
       "Hash": "513c5e6da774c913430561a3912c5354"
     },
+    "UpSetR": {
+      "Package": "UpSetR",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "ggplot2",
+        "grDevices",
+        "gridExtra",
+        "methods",
+        "plyr",
+        "scales",
+        "stats",
+        "utils"
+      ],
+      "Hash": "f6ef89503aaff474873f8bc1823894e1"
+    },
     "anytime": {
       "Package": "anytime",
       "Version": "0.3.9",
@@ -2202,6 +2220,17 @@
       ],
       "Hash": "a1ac5c03ad5ad12b9d1597e00e23c3dd"
     },
+    "plyr": {
+      "Package": "plyr",
+      "Version": "1.8.9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "6b8177fd19982f0020743fadbfdbd933"
+    },
     "pool": {
       "Package": "pool",
       "Version": "1.0.3",
@@ -2684,6 +2713,17 @@
         "shiny"
       ],
       "Hash": "a515a78460d21328d2b8765fd5506964"
+    },
+    "shinybrowser": {
+      "Package": "shinybrowser",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "shiny"
+      ],
+      "Hash": "0f3fec942ab67d497e1d89f71d99b637"
     },
     "shinycssloaders": {
       "Package": "shinycssloaders",
