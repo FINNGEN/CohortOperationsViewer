@@ -219,15 +219,14 @@
     },
     "FeatureExtraction": {
       "Package": "FeatureExtraction",
-      "Version": "3.5.1",
+      "Version": "3.5.2",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "FeatureExtraction",
       "RemoteRef": "main",
-      "RemoteSha": "a93992be1a2f7d3710aa8249287af937872d50f3",
-      "Remotes": "ohdsi/Eunomia",
+      "RemoteSha": "f4536fb75e5c32399c91270f6b6e35c8e95fdf1e",
       "Requirements": [
         "Andromeda",
         "DBI",
@@ -246,7 +245,7 @@
         "readr",
         "rlang"
       ],
-      "Hash": "bd1abbedde6e04599d59921733ec2db1"
+      "Hash": "e686d93264359802fdccd41989c51386"
     },
     "HadesExtras": {
       "Package": "HadesExtras",
@@ -257,7 +256,7 @@
       "RemoteUsername": "FINNGEN",
       "RemoteRepo": "HadesExtras",
       "RemoteRef": "master",
-      "RemoteSha": "65d0ecdd9f54a5ecbf54b3fd62fdcf401d907957",
+      "RemoteSha": "9c17b4cc2fbfb4d0449e087ae76a713a8bb649df",
       "Remotes": "OHDSI/DatabaseConnector, OHDSI/FeatureExtraction, OHDSI/CohortGenerator, OHDSI/ResultModelManager, OHDSI/Eunomia, PheWAS/PheWAS, javier-gracia-tabuenca-tuni/CohortDiagnostics@fix-error-with-no-conceptset-cohorts",
       "Requirements": [
         "CohortDiagnostics",
@@ -291,7 +290,7 @@
         "tippy",
         "validate"
       ],
-      "Hash": "6e4159e1d67130b773da859706a96595"
+      "Hash": "bb78ef95012b42732a6a9ba21314b578"
     },
     "MASS": {
       "Package": "MASS",
@@ -330,11 +329,11 @@
       "Version": "2.1.2",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "javier-gracia-tabuenca-tuni",
       "RemoteRepo": "OhdsiShinyModules",
       "RemoteRef": "fix-error-with-no-conceptset-cohorts",
       "RemoteSha": "62dd14b22d7d3a36709935989d12663df5359817",
-      "RemoteHost": "api.github.com",
       "Remotes": "ohdsi/CirceR, ohdsi/ResultModelManager",
       "Requirements": [
         "CirceR",
@@ -489,14 +488,14 @@
     },
     "ResultModelManager": {
       "Package": "ResultModelManager",
-      "Version": "0.5.6",
+      "Version": "0.5.7",
       "Source": "GitHub",
       "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteUsername": "OHDSI",
       "RemoteRepo": "ResultModelManager",
       "RemoteRef": "main",
-      "RemoteSha": "58100690f36000bfa7f8058bc6584780b11311d5",
-      "RemoteHost": "api.github.com",
+      "RemoteSha": "1cff4f0b1856b4c9fef662d3a6fb88e3c3005760",
       "Requirements": [
         "DBI",
         "DatabaseConnector",
@@ -514,7 +513,7 @@
         "rlang",
         "zip"
       ],
-      "Hash": "04dd85f6ac8234623c66b6a64db389d6"
+      "Hash": "0e5d673a91b0e34b21a5e15b278ee44f"
     },
     "SqlRender": {
       "Package": "SqlRender",
@@ -2503,7 +2502,7 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.26",
+      "Version": "2.27",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -2522,7 +2521,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "9b148e7f95d33aac01f31282d49e4f44"
+      "Hash": "27f9502e1cdbfa195f94e03b0f517484"
     },
     "roxygen2": {
       "Package": "roxygen2",
