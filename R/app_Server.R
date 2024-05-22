@@ -140,7 +140,7 @@ app_server <- function(input, output, session) {
     #
     # timeCodeWAS, codeWAS
     #
-    if(r$analysisSettings$analysisType %in% c("timeCodeWAS", "codeWAS", "cohortOverlaps")){
+    if(r$analysisSettings$analysisType %in% c("timeCodeWAS", "codeWAS", "cohortOverlaps", "cohortDemographics")){
       analysisResultsHandler <- .zipToConnectionHandled(r$pathToResultsZip, r$analysisSettings$analysisType)
     }
 
@@ -197,6 +197,14 @@ app_server <- function(input, output, session) {
     if(r$analysisSettings$analysisType == "cohortOverlaps"){
       ui <- mod_cohortOverlapsVisualization_ui("cohortOverlapsVisualization")
     }
+
+    #
+    # cohortDemographics
+    #
+    if(r$analysisSettings$analysisType == "cohortDemographics"){
+      ui <- mod_cohortDemographicsVisualization_ui("cohortDemographicsVisualization")
+    }
+
 
     # close modal
     shiny::removeModal()
@@ -255,6 +263,13 @@ app_server <- function(input, output, session) {
     #
     if(r$analysisSettings$analysisType == "cohortOverlaps"){
       mod_cohortOverlapsVisualization_server("cohortOverlapsVisualization", r$analysisResultsHandler, resultDatabaseSettings )
+    }
+
+    #
+    # cohortDemographics
+    #
+    if(r$analysisSettings$analysisType == "cohortDemographics"){
+      mod_cohortDemographicsVisualization_server("cohortDemographicsVisualization", r$analysisResultsHandler, resultDatabaseSettings )
     }
   })
 
