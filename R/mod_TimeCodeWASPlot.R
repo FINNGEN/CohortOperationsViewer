@@ -8,6 +8,10 @@ mod_timeCodeWASPlot_ui <- function(id) {
   htmltools::tagList(
     shinyjs::useShinyjs(),
     shiny::fluidRow(
+      tags$style(
+        type = 'text/css',
+        '.modal-dialog { width: fit-content !important; }'
+      ),
       # these must be in sync with server initialization
       shiny::column(3,
                     shiny::h5("Observation type"),
@@ -38,7 +42,9 @@ mod_timeCodeWASPlot_ui <- function(id) {
       shiny::column(3,
                     shiny::actionButton(ns("redraw"), label = shiny::tags$p("Update CodeWAS", style = "color:white; margin-bottom:0px"), class = "btn-primary"),
                     shiny::hr(style = "margin-bottom: 1px;"),
-                    shiny::actionButton(ns("table_all"), label = "Show all points as table"),
+                    shiny::actionButton(ns("table_all"), label = "Show all points as a table"),
+                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::downloadButton(ns("download_actionButton"), "Download data"),
                     shiny::hr(style = "margin-bottom: 1px;"),
                     shiny::actionButton(ns("unselect"), label = "Unselect all"),
       )
@@ -308,9 +314,20 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       r$gg_data <- gg_data
     })
 
+    #
+    # download data as a table
+    #
+    output$download_actionButton <- shiny::downloadHandler(
+      filename = function(){"timecodeWAS.csv"},
+      content = function(fname){
+        readr::write_csv(r$gg_data, fname)
+        return(fname)
+      }
+    )
+
 
   })
-}
+} # mod_timeCodeWASPlot_server
 
 .label_editor <- function(s){
   for(i in 1:length(s)){

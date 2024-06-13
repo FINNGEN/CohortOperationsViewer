@@ -26,6 +26,35 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
         tibble::as_tibble()
     })
 
+    #
+    # data to be plotted
+    #
+    ggplotData <- shiny::reactive({
+      shiny::req(cohortDemographicsData())
+      shiny::req(input$stratify_by)
+      shiny::req(input$database_id)
+      shiny::req(input$cohort_id)
+      shiny::req(input$gender)
+      shiny::req(input$reference_year)
+
+      # add cohort_id to grouping_vars
+      grouping_vars <- c(input$stratify_by, "cohort_id")
+
+      cohortDemographicsData() |>
+        dplyr::mutate(
+          age_group = forcats::fct_reorder(
+            age_group, as.numeric(stringr::str_extract(age_group, "\\d+")))
+        ) |>
+        # filters
+        dplyr::filter(database_id %in% input$database_id) |>
+        dplyr::filter(cohort_id %in% input$cohort_id) |>
+        dplyr::filter(gender %in% input$gender) |>
+        dplyr::filter(reference_year == input$reference_year) |>
+        dplyr::group_by(across(grouping_vars)) |>
+        dplyr::summarise(count = sum(count)) |>
+        dplyr::ungroup()
+    })
+
     output$CDPlot_ui <- shiny::renderUI({
       shiny::req(cohortDemographicsData())
 
@@ -54,12 +83,21 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
         column(
           3,
           shiny::tagList(
-            shiny::checkboxInput(ns("show_count"), "Show patient counts", value = FALSE),
-            shiny::checkboxInput(ns("same_scale"), "Use same y-scale across cohorts", value = TRUE),
             shinyWidgets::pickerInput(
               ns("stratify_by"), "Stratify by",
               choices = c("age_group", "gender", "calendar_year"),
               selected = c("age_group", "gender", "calendar_year"), multiple = TRUE),
+          )
+        ),
+        column(
+          3,
+          shiny::tagList(
+            shiny::checkboxInput(ns("show_count"), "Show patient counts", value = FALSE),
+            shiny::checkboxInput(ns("same_scale"), "Use same y-scale across cohorts", value = TRUE),
+            shiny::fluidRow(
+              shiny::actionButton(ns("table_all"), label = "Show data as a table"),
+              shiny::downloadButton(ns("download_actionButton"), "Download"),
+            ),
           )
         )
       )
@@ -84,12 +122,12 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
     #
     # helper function to build the plot
     #
-    build_plot <- function(x, y, fill, rows, cols, title, x_label, y_label, gg_data){
+    build_plot <- function(x, y, fill, rows, cols, title, x_label, y_label){
       x <- ggplot2::sym(x)
       y <- ggplot2::sym(y)
       fill <- if(fill != "") ggplot2::sym(fill)
       text_angle <- if(x == "calendar_year") 45 else 0
-      gg_plot <- gg_data |>
+      gg_plot <- ggplotData() |>
         ggplot2::ggplot(ggplot2::aes(x = !!x, y = !!y, fill = !!fill)) +
         ggplot2::geom_col(position = "dodge", width = 0.8) +
         {if(input$show_count)
@@ -100,7 +138,7 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
           ggplot2::scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(min(x), (max(x) + 1) * 1.1)))))
         } +
         ggplot2::coord_cartesian(clip = "off") +
-        ggplot2::expand_limits(y = max(gg_data$count) * 1.1) +
+        ggplot2::expand_limits(y = max(ggplotData()$count) * 1.1) +
         ggplot2::theme_minimal(base_size = 13) +
         ggplot2::theme(
           axis.text.x = ggplot2::element_text(size = 12, angle = text_angle, hjust = 1),
@@ -119,72 +157,101 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
     #
     output$demographicsPlot <- shiny::renderPlot({
       shiny::req(shiny::isTruthy(cohortDemographicsData()))
-      shiny::req(input$database_id)
-      shiny::req(input$cohort_id)
-      shiny::req(input$stratify_by)
-      shiny::req(input$reference_year)
-
-      # add cohort_id to grouping_vars
-      grouping_vars <- c(input$stratify_by, "cohort_id")
-
-      gg_data <- cohortDemographicsData() |>
-        dplyr::mutate(
-          age_group = forcats::fct_reorder(
-            age_group, as.numeric(stringr::str_extract(age_group, "\\d+")))
-        ) |>
-        # filters
-        dplyr::filter(database_id %in% input$database_id) |>
-        dplyr::filter(cohort_id %in% input$cohort_id) |>
-        dplyr::filter(gender %in% input$gender) |>
-        dplyr::filter(reference_year == input$reference_year) |>
-        dplyr::group_by(across(grouping_vars)) |>
-        dplyr::summarise(count = sum(count)) |>
-        dplyr::ungroup()
+      shiny::req(ggplotData())
 
       # ggplot absolutely requires data to be present
-      if(nrow(gg_data) == 0) return(NULL)
+      if(nrow(ggplotData()) == 0) return(NULL)
 
       if(identical(c("age_group", "gender", "calendar_year"), input$stratify_by)){
         gg_plot <- build_plot(
           x = "calendar_year", y = "count", fill = "gender",
           rows = "cohort_id", cols = "age_group",
-          title = "Cohort Demographics", x_label = "Calendar time by age group", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Calendar time by age group", y_label = "Count")
       } else if(identical(c("age_group", "gender"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "age_group", y = "count", fill = "gender",
           rows = "cohort_id", cols = ".",
-          title = "Cohort Demographics", x_label = "Age group", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Age group", y_label = "Count")
       } else if(identical(c("age_group", "calendar_year"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "calendar_year", y = "count", fill = "",
           rows = "cohort_id", cols = "age_group",
-          title = "Cohort Demographics", x_label = "Calendar time by age group", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Calendar time by age group", y_label = "Count")
       } else if(identical(c("gender", "calendar_year"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "calendar_year", y = "count", fill = "gender",
           rows = "cohort_id", cols = "gender",
-          title = "Cohort Demographics", x_label = "Calendar time by gender", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Calendar time by gender", y_label = "Count")
       } else if(identical(c("age_group"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "age_group", y = "count", fill = "",
           rows = "cohort_id", cols = ".",
-          title = "Cohort Demographics", x_label = "Age group", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Age group", y_label = "Count")
       } else if(identical(c("gender"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "gender", y = "count", fill = "gender",
           rows = "cohort_id", cols = ".",
-          title = "Cohort Demographics", x_label = "Gender", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Gender", y_label = "Count")
       } else if(identical(c("calendar_year"), input$stratify_by)) {
         gg_plot <- build_plot(
           x = "calendar_year", y = "count", fill = "",
           rows = "cohort_id", cols = ".",
-          title = "Cohort Demographics", x_label = "Calendar time", y_label = "Count", gg_data = gg_data)
+          title = "Cohort Demographics", x_label = "Calendar time", y_label = "Count")
       } else {
         return(NULL)
       }
 
       return(gg_plot)
     })
+
+    #
+    # show all points as a table
+    #
+    shiny::observeEvent(input$table_all, {
+      shiny::req(ggplotData())
+
+      # show table
+      shiny::showModal(
+        shiny::modalDialog(
+          DT::renderDataTable({
+            ggplotData() |>
+              DT::datatable(
+                # colnames = c(
+                #   'Covariate name' = 'name',
+                #   'Type' = 'up_in',
+                #   'OR' = 'OR',
+                #   'Cases n' = 'n_cases_yes',
+                #   'Ctrls n' = 'n_controls_yes',
+                #   'Cases %' = 'cases_per',
+                #   'Ctrls %' = 'controls_per',
+                #   'Group' = 'GROUP',
+                #   'p' = 'p'
+                # ),
+                escape = FALSE
+              )
+          }),
+          size = "l",
+          easyClose = FALSE,
+          title = "Demographics data table",
+          footer = shiny::modalButton("Close"),
+          options = list(
+            autowidth = TRUE
+          )
+        )
+      )
+    }, ignoreInit = TRUE)
+
+    #
+    # download demographics table
+    #
+    output$download_actionButton <- shiny::downloadHandler(
+      filename = function(){"demographics.csv"},
+      content = function(fname){
+        readr::write_csv(ggplotData(), fname)
+        return(fname)
+      }
+    )
+
   })
 }
 

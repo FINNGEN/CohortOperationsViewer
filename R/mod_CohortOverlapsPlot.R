@@ -67,7 +67,8 @@ mod_cohortOverlapsPlot_ui <- function(id) {
         column(12, align = "center",
                shiny::plotOutput(ns("upset_plot")),
                div(style = "margin-top: 20px;",
-                   shiny::downloadButton(ns("download"), "Download plot", icon = icon("download"))
+                   shiny::downloadButton(ns("download_pdf"), "Download plot as PDF", icon = icon("download")),
+                   shiny::downloadButton(ns("download_csv"), "Download data as CSV", icon = icon("download")),
                )
         )
       ),
@@ -141,7 +142,7 @@ mod_cohortOverlapsPlot_server <- function(id, analysisResultsHandler) {
     #
     # download the plot as a PDF file
     #
-    output$download <- downloadHandler(
+    output$download_pdf <- downloadHandler(
       filename = function(){
         paste("upset_plot_", Sys.Date(), ".pdf", sep = "")
       },
@@ -162,5 +163,22 @@ mod_cohortOverlapsPlot_server <- function(id, analysisResultsHandler) {
 
       contentType = "application/pdf"
     )
+
+    #
+    # download the data as a CSV file
+    #
+    output$download_csv <- downloadHandler(
+      filename = function(){
+        paste0("upset_plot_data_", Sys.Date(), ".csv")
+      },
+
+      content = function(file){
+        write.csv(cohortOverlaps(), file)
+      },
+
+      contentType = "application/csv"
+    )
+
+
   })
 }
