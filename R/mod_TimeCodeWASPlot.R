@@ -14,42 +14,80 @@ mod_timeCodeWASPlot_ui <- function(id) {
       ),
       # these must be in sync with server initialization
       shiny::column(3,
-                    shiny::h5("Observation type"),
-                    shinyWidgets::awesomeCheckbox(ns("condition_occurrence"), label = "Condition occurrence", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("drug_exposure"), label = "Drug exposure", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("measurement"), label = "Measurement", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("procedure_occurrence"), label = "Procedure occurrence", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("observation"), label = "Observation", value = TRUE),
+                    htmltools::strong("Observation type"),
+                    shiny::div(style = "height: 10px;"),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("condition_occurrence"), label = "Condition occurrence", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("drug_exposure"), label = "Drug exposure", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("measurement"), label = "Measurement", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("procedure_occurrence"), label = "Procedure occurrence", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("observation"), label = "Observation", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
       ),
       shiny::column(3, # c("-log10(p) [0,50]", "-log10(p) (50,100]", "-log10(p) (100,200]", "-log10(p) (200,Inf]")
-                    shiny::h5("p-value groups"),
-                    shinyWidgets::awesomeCheckbox(ns("group_1"), label = "-log10(p) [0,50]", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("group_5"), label = "-log10(p) (50,100]", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("group_10"), label = "-log10(p) (100,200]", value = TRUE),
-                    shinyWidgets::awesomeCheckbox(ns("group_20"), label = "-log10(p) (200,Inf]", value = TRUE),
+                    htmltools::strong("p-value groups"),
+                    shiny::div(style = "height: 10px;"),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("group_1"), label = "-log10(p) [0,50]", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("group_5"), label = "-log10(p) (50,100]", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("group_10"), label = "-log10(p) (100,200]", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
+                    shiny::div(
+                      shinyWidgets::awesomeCheckbox(ns("group_20"), label = "-log10(p) (200,Inf]", value = TRUE),
+                      style = "margin-bottom: -10px;"
+                    ),
       ),
       shiny::column(3,
                     shinyWidgets::awesomeCheckbox(ns("show_labels"), label = "Show labels"),
-                    shiny::hr(style = "margin-bottom: 0px;"),
-                    shiny::sliderInput(ns("cases_per"), label="Label where case% greater than:",
+                    shiny::hr(style = "margin-bottom: -12px;"),
+                    shiny::sliderInput(ns("cases_per"), label="Label if case% >",
                                        min = 0, max = 100, post  = " %", width = "200px",
                                        value = 50
                     ),
-                    shiny::hr(style = "margin-bottom: 5px;"),
-                    shiny::textInput(ns("search_string"), label = "Search labels for string (regex)", value = "", width = "60%"),
-                    shiny::actionButton(ns("search_points"), label = "Search"),
+                    shiny::hr(style = "margin-bottom: -10px;"),
+                    shiny::fluidRow(
+                      column(9,
+                             shiny::textInput(ns("search_string"), label = "Search labels (regex)", value = "", width = "100%"),
+                      ),
+                      column(3,
+                             shiny::div(
+                               shiny::actionButton(ns("search_points"), label = "Search"),
+                               style = "margin-top: 25px; margin-bottom: -25px; margin-left: -25px;"
+                             )
+                      )
+                    ),
       ),
       shiny::column(3,
                     shiny::actionButton(ns("redraw"), label = shiny::tags$p("Update CodeWAS", style = "color:white; margin-bottom:0px"), class = "btn-primary"),
-                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::div(style = "height: 12px;"),
                     shiny::actionButton(ns("table_all"), label = "Show all points as a table"),
-                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::div(style = "height: 5px;"),
                     shiny::downloadButton(ns("download_actionButton"), "Download data"),
-                    shiny::hr(style = "margin-bottom: 1px;"),
+                    shiny::div(style = "height: 12px;"),
                     shiny::actionButton(ns("unselect"), label = "Unselect all"),
       )
     ),
-    shiny::hr(style = "margin-bottom: 20px;"),
+    shiny::div(style = "height: 12px;"),
     shinycustomloader::withLoader(
       ggiraph::girafeOutput(ns("codeWASplot"), width = "100%", height = "100%"),
       type = "html",

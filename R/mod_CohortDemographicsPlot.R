@@ -87,16 +87,25 @@ mod_cohortDemographicsPlot_server <- function(id, analysisResultsHandler) {
               ns("stratify_by"), "Stratify by",
               choices = c("age_group", "gender", "calendar_year"),
               selected = c("age_group", "gender", "calendar_year"), multiple = TRUE),
+            shiny::div(
+              shiny::checkboxInput(ns("show_count"), "Show patient counts", value = FALSE),
+              style="margin-top: 15px; margin-bottom: -15px;"
+            ),
+            shiny::div(
+              shiny::checkboxInput(ns("same_scale"), "Use same y-scale across cohorts", value = TRUE),
+              style="margin-top: -15px; margin-bottom: -15px;"
+            ),
           )
         ),
         column(
           3,
           shiny::tagList(
-            shiny::checkboxInput(ns("show_count"), "Show patient counts", value = FALSE),
-            shiny::checkboxInput(ns("same_scale"), "Use same y-scale across cohorts", value = TRUE),
             shiny::fluidRow(
+              shiny::div(style = "height:25px"),
               shiny::actionButton(ns("table_all"), label = "Show data as a table"),
+              shiny::div(style = "height:10px"),
               shiny::downloadButton(ns("download_actionButton"), "Download"),
+              shiny::div(style = "height:5px"),
             ),
           )
         )
