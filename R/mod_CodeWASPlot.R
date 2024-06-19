@@ -151,7 +151,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
 
       # this is not returning the url?
       atlasUrl <- shiny::getShinyOption("cohortOperationsConfig")$atlasUrl
-browser()
+
       DT::datatable(
         r$filteredCodeWASData |>
           dplyr::mutate(p_value = as.numeric(formatC(p_value, format = "e", digits = 2))) |>

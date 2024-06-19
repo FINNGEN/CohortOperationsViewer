@@ -69,7 +69,7 @@ RUN R -e "renv::restore()" \
 EXPOSE 8888
 
 ENTRYPOINT  ["/usr/local/bin/R", "-e", \
-             CohortOperationsViewer::run_app(\
+             "CohortOperationsViewer::run_app(\
                 Sys.getenv('COW_CONFIG_FILE'), \
                 options = list(host='0.0.0.0', port=8888)\
             )"]
