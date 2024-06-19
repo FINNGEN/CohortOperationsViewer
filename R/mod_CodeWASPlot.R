@@ -32,7 +32,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
 
     output$total_n <- shiny::renderText({
       shiny::req(r$codeWASData)
-      paste("Total N: ", dplyr::first(r$codeWASData$n_total))
+      paste("Total N: ")
     })
 
     # reactive values
@@ -143,6 +143,7 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
     #
     output$codeWAStable <- DT::renderDataTable({
       req(r$filteredCodeWASData)
+      req(r$filteredCodeWASData  |>  nrow() > 0)
 
       # https://github.com/rstudio/DT/issues/1127
       # the bug can be worked around by setting shiny.json.digits to a smaller value
@@ -150,14 +151,17 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
 
       # this is not returning the url?
       atlasUrl <- shiny::getShinyOption("cohortOperationsConfig")$atlasUrl
-
+browser()
       DT::datatable(
         r$filteredCodeWASData |>
           dplyr::mutate(p_value = as.numeric(formatC(p_value, format = "e", digits = 2))) |>
           dplyr::mutate(odds_ratio = as.numeric(formatC(odds_ratio, format = "e", digits = 2))) |>
           dplyr::mutate(beta = as.numeric(formatC(beta, format = "e", digits = 2))) |>
           dplyr::mutate(standard_error = as.numeric(formatC(standard_error, format = "e", digits = 2))) |>
-          dplyr::select(-n_total) |>
+          dplyr::mutate(mean_cases = as.numeric(formatC(mean_cases, format = "e", digits = 2))) |>
+          dplyr::mutate(sd_cases = as.numeric(formatC(sd_cases, format = "e", digits = 2))) |>
+          dplyr::mutate(mean_controls = as.numeric(formatC(mean_controls, format = "e", digits = 2))) |>
+          dplyr::mutate(sd_controls = as.numeric(formatC(sd_controls, format = "e", digits = 2))) |>
           dplyr::mutate(covariate_name_full = as.character(covariate_name)) |>
           dplyr::mutate(covariate_name = stringr::str_trunc(covariate_name, 40)) |>
           dplyr::mutate(
@@ -166,7 +170,8 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           ) |>
           dplyr::select(
             database_id, domain_id, analysis_name, covariate_name, concept_id,
-            n_cases, n_controls, p_value, odds_ratio, beta, standard_error, model_type, run_notes,
+            n_cases_yes, n_controls_yes, mean_cases, sd_cases, mean_controls, sd_controls,
+            p_value, odds_ratio, beta, standard_error, model_type, run_notes,
             covariate_name_full
           ),
         escape = FALSE,
@@ -181,8 +186,12 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
           'Concept ID' = 'concept_id',
           # 'Cov. ID' = 'covariate_id',
           # 'N tot' = 'n_total',
-          'N case' = 'n_cases',
-          'N ctrl' = 'n_controls',
+          'N case' = 'n_cases_yes',
+          'N ctrl' = 'n_controls_yes',
+          'Mean case' = 'mean_cases',
+          'SD case' = 'sd_cases',
+          'Mean ctrl' = 'mean_controls',
+          'SD ctrl' = 'sd_controls',
           'p' = 'p_value',
           'OR' = 'odds_ratio',
           'Beta' = 'beta',
