@@ -113,13 +113,13 @@ mod_codeWASPlot_server <- function(id, analysisResultsHandler) {
       r$codeWASData <- analysisResultsHandler$tbl('codewas_results') |>
         dplyr::left_join(analysisResultsHandler$tbl('covariate_ref'), by = c('covariate_id' = 'covariate_id'))  |>
         dplyr::left_join(analysisResultsHandler$tbl('analysis_ref'), by = c('analysis_id' = 'analysis_id')) |>
+        dplyr::collect() |>
         dplyr::mutate(odds_ratio = ifelse(is.na(odds_ratio) & model_type != 'linear', exp(beta), odds_ratio)) |>
         dplyr:::select(-c('is_binary', 'missing_means_zero')) |>
         dplyr::mutate(p_log = cut(-log10(p_value),
                                   breaks = c(0, 5, 100, Inf),
                                   labels = c('-log10(p) (0,5]', '-log10(p) (5,100]', '-log10(p) (100,Inf]'))
-        ) |>
-        tibble::as_tibble()
+        )
     })
 
     #
