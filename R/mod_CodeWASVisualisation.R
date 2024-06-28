@@ -18,7 +18,9 @@ mod_codeWASVisualization_ui <- function(id) {
       id = ns("tabs"),
       shinydashboard::menuItem(text = "About", tabName = "about", icon = shiny::icon("code")),
       shinydashboard::menuItem(text = "Cohort Definition", tabName = "cohortDefinition", icon = shiny::icon("code")),
-      shinydashboard::menuItem(text = "codeWAS", tabName = "codeWAS", icon = shiny::icon("table"))#,
+      shinydashboard::menuItem(text = "codeWAS", tabName = "codeWAS", icon = shiny::icon("table")),
+      selected = "codeWAS"
+      #,
       #shinydashboard::menuItem(text = "Meta data", tabName = "databaseInformation", icon = shiny::icon("gear", verify_fa = FALSE))
     )
 

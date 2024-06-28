@@ -18,7 +18,8 @@ mod_timeCodeWASVisualization_ui <- function(id) {
       id = ns("tabs"),
       shinydashboard::menuItem(text = "About", tabName = "about", icon = shiny::icon("code")),
       shinydashboard::menuItem(text = "Cohort Definition", tabName = "cohortDefinition", icon = shiny::icon("code")),
-      shinydashboard::menuItem(text = "TimeCodeWas", tabName = "timeCodeWAS", icon = shiny::icon("table"))#,
+      shinydashboard::menuItem(text = "TimeCodeWas", tabName = "timeCodeWAS", icon = shiny::icon("table")),
+      selected = "timeCodeWAS"
       #shinydashboard::menuItem(text = "Meta data", tabName = "databaseInformation", icon = shiny::icon("gear", verify_fa = FALSE))
     )
 
