@@ -18,7 +18,8 @@ mod_cohortOverlapsVisualization_ui <- function(id) {
       id = ns("tabs"),
       shinydashboard::menuItem(text = "About", tabName = "about", icon = shiny::icon("code")),
       shinydashboard::menuItem(text = "Cohort Definition", tabName = "cohortDefinition", icon = shiny::icon("code")),
-      shinydashboard::menuItem(text = "cohortOverlaps", tabName = "cohortOverlaps", icon = shiny::icon("table"))#,
+      shinydashboard::menuItem(text = "cohortOverlaps", tabName = "cohortOverlaps", icon = shiny::icon("table")),
+      selected = "cohortOverlaps"
       #shinydashboard::menuItem(text = "Meta data", tabName = "databaseInformation", icon = shiny::icon("gear", verify_fa = FALSE))
     )
 
