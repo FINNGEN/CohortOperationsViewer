@@ -54,8 +54,8 @@ app_server <- function(input, output, session) {
         footer = NULL,
         easyClose = FALSE,
         #
-        "Please load an results first.",
-        shiny::fileInput("loadedFile", "Choose a zip file with an analysis resutls", accept = c(".zip"))
+        "Please load a results file first.",
+        shiny::fileInput("loadedFile", "Choose a zip file with analysis results", accept = c(".zip"))
       ))
 
     }
@@ -70,7 +70,7 @@ app_server <- function(input, output, session) {
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
-        text = "The file is not a zip",
+        text = "The file is not a zip file",
         type = "error"
       )
       shinyjs::reset("loadedFile")
@@ -94,7 +94,7 @@ app_server <- function(input, output, session) {
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
-        text = "analysisSettings.yml not found in the zip file",
+        text = "analysisSettings.yml was not found in the zip file",
         type = "error"
       )
       shinyjs::reset("loadedFile")
@@ -108,7 +108,7 @@ app_server <- function(input, output, session) {
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
-        text = "analysisSettings.yml does not have field 'analysisType'",
+        text = "analysisSettings.yml does not have a field 'analysisType'",
         type = "error"
       )
       shinyjs::reset("loadedFile")
@@ -151,7 +151,7 @@ app_server <- function(input, output, session) {
       shinyWidgets::sendSweetAlert(
         session = session,
         title = "Error",
-        text = paste0("There is not analysis visualisation for the selected analysis type: ", r$analysisSettings$analysisType),
+        text = paste0("There is no visualisation for the selected analysis type: ", r$analysisSettings$analysisType),
         type = "error"
       )
       shinyjs::reset("loadedFile")
