@@ -358,7 +358,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     output$download_actionButton <- shiny::downloadHandler(
       filename = function(){"timecodeWAS.csv"},
       content = function(fname){
-        readr::write_csv(r$gg_data, fname)
+        readr::write_csv(r$gg_data |> dplyr::select(-label), fname)
         return(fname)
       }
     )
