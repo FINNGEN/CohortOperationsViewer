@@ -205,10 +205,13 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
     # codeWASplot_selected ####
     #
     shiny::observeEvent(input$codeWASplot_selected, {
+      shiny::req(input$codeWASplot_selected)
+      shiny::req(input$codeWASplot_selected != "NA")
 
       # clean selection value take only last selected
       selected_rows <- input$codeWASplot_selected
       selected_rows <- selected_rows[selected_rows != ""]
+      selected_rows <- selected_rows[selected_rows != "NA"]
 
       # ignore selected rows that are currently plot as a line
       selected_rows  <- setdiff(selected_rows, r$line_to_plot$data_id)
@@ -490,7 +493,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
                    xend = ifelse(facet_max_x > facet_max_y, facet_max_y, facet_max_x),
                    yend = ifelse(facet_max_x > facet_max_y, facet_max_y, facet_max_x)
       ),
-      color = "red", alpha = 0.5, linewidth = 0.2, linetype = "dashed") +
+      color = "darkgray", alpha = 0.5, linewidth = 0.2, linetype = "dashed") +
     ggplot2::geom_segment(
       ggplot2::aes(x = 0, y = 0, xend = facet_max_x, yend = 0),
       color = "black", alpha = 0.5, linewidth = 0.2, linetype = "dashed") +
@@ -507,11 +510,11 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
         "-log10(p) (200,Inf]" = 3
       )
     ) +
-    {if(show_labels)
+    {if(length(selection) > 1)
       #
       ggrepel::geom_text_repel(
         data =  gg_data |>
-          dplyr::filter(cases_per >  show_labels_cases_per/100),
+          dplyr::filter(data_id %in% selection$data_id),
         ggplot2::aes(label = stringr::str_wrap(stringr::str_trunc(name, 30), 15)),
         max.overlaps = Inf,
         size = 3,
@@ -540,7 +543,7 @@ mod_timeCodeWASPlot_server <- function(id, analysisResultsHandler) {
       legend.key.width = grid::unit(10, "mm"),
       legend.position = "bottom",
       legend.direction = "vertical",
-      strip.text.x = ggplot2::element_text(size = 8)
+      strip.text.x = ggplot2::element_text(size = 10)
     ) +
     ggplot2::scale_color_manual(values = c("darkgray")) +
     ggplot2::scale_fill_manual(values = c(
